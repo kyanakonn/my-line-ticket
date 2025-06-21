@@ -36,7 +36,7 @@ app.post("/webhook", async (req, res) => {
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${LINE_ACCESS_TOKEN}`,
+          Authorization: `Bearer ${XyV0b5TDiX8Rg56QlMFLRSk8T31f7jdpDo9eei7R1J7Lf8faOksfL6W7a0aHqGuVrh/yR3IbPi+eJUNV4dyn0ANG6R7rrestYNS/VuiLnP9HEVc6JJIKcum97A9HFKbHkau0qNb3AGAoUGiPGldr3AdB04t89/1O/w1cDnyilFU=}`,
         },
       }
     );
