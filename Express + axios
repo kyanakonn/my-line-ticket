@@ -4,7 +4,7 @@ const app = express();
 app.use(express.json());
 
 // LINEのチャンネルアクセストークンを環境変数から取得
-const LINE_ACCESS_TOKEN = process.env.b3001e74159b56c37a9d97ceb61b9e9a;
+const LINE_ACCESS_TOKEN = process.env.XyV0b5TDiX8Rg56QlMFLRSk8T31f7jdpDo9eei7R1J7Lf8faOksfL6W7a0aHqGuVrh/yR3IbPi+eJUNV4dyn0ANG6R7rrestYNS/VuiLnP9HEVc6JJIKcum97A9HFKbHkau0qNb3AGAoUGiPGldr3AdB04t89/1O/w1cDnyilFU=;
 const LINE_API_URL = "https://api.line.me/v2/bot/message/reply";
 
 // 整理券ページのURL
