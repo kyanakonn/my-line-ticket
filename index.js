@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 let currentTicket = 1;
 
 // LINE設定
-const LINE_ACCESS_TOKEN = process.env.XyV0b5TDiX8Rg56QlMFLRSk8T31f7jdpDo9eei7R1J7Lf8faOksfL6W7a0aHqGuVrh/yR3IbPi+eJUNV4dyn0ANG6R7rrestYNS/VuiLnP9HEVc6JJIKcum97A9HFKbHkau0qNb3AGAoUGiPGldr3AdB04t89/1O/w1cDnyilFU=;
+const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
 const LINE_API_URL = "https://api.line.me/v2/bot/message/reply";
 
 // LINE Webhook
@@ -36,7 +36,7 @@ app.post("/webhook", async (req, res) => {
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${XyV0b5TDiX8Rg56QlMFLRSk8T31f7jdpDo9eei7R1J7Lf8faOksfL6W7a0aHqGuVrh/yR3IbPi+eJUNV4dyn0ANG6R7rrestYNS/VuiLnP9HEVc6JJIKcum97A9HFKbHkau0qNb3AGAoUGiPGldr3AdB04t89/1O/w1cDnyilFU=}`,
+          Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}`,
         },
       }
     );
