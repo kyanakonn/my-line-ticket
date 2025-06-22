@@ -38,7 +38,7 @@
 <body>
   <h1>整理券発行ページ</h1>
   <button id="issue-button" onclick="getTicket()">整理券を発行する</button>
-  <div class="ticket" id="result">まだ整理券は発行されていません。</div>
+  <div class="ticket" id="result">あなたの整理券は発行されていません。</div>
 
   <div class="call-status">
     現在の呼び出し番号：<span id="current-number">--</span>
@@ -110,7 +110,7 @@
     function updateCountdown(ms) {
       const minutes = Math.floor(ms / 60000);
       const seconds = Math.floor((ms % 60000) / 1000);
-      countdownEl.textContent = `あと ${minutes}分 ${seconds}秒 で再発行できます`;
+      countdownEl.textContent = `あと ${minutes}分 ${seconds}秒 後に再発行できます`;
     }
 
     // 整理券番号を復元
