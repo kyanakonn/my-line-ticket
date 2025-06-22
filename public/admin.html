@@ -1,45 +1,93 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>管理者ページ - 呼び出し</title>
+  <meta charset="UTF-8" />
+  <title>呼び出し管理ページ</title>
   <style>
     body {
       font-family: sans-serif;
       text-align: center;
       padding: 2em;
     }
-    .current {
+    .number-display {
       font-size: 2em;
       color: darkblue;
-      margin-top: 1em;
+      margin: 1em 0;
+    }
+    button {
+      padding: 0.6em 1.5em;
+      margin: 0.5em;
+      font-size: 1em;
+    }
+    input[type="number"] {
+      font-size: 1.2em;
+      width: 5em;
+      padding: 0.3em;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>呼び出し管理ページ</h1>
-  <div class="current">
-    現在の呼び出し番号: <span id="current-number">--</span>
+  <h1>管理者用：呼び出し操作</h1>
+
+  <div class="number-display">
+    現在の呼び出し番号：<span id="current-number">--</span>
   </div>
-  <button id="call-button">次の番号を呼び出す</button>
+
+  <div>
+    <button onclick="changeNumber(-1)">戻る（-1）</button>
+    <button onclick="changeNumber(1)">進む（+1）</button>
+  </div>
+
+  <div style="margin-top: 2em;">
+    <label for="set-number">番号を直接設定：</label>
+    <input type="number" id="set-number" min="0" />
+    <button onclick="setNumber()">変更</button>
+  </div>
+
   <p id="message"></p>
 
   <script>
+    const numberEl = document.getElementById("current-number");
+    const messageEl = document.getElementById("message");
+
     async function fetchCurrentNumber() {
       const res = await fetch("/api/number");
       const data = await res.json();
-      document.getElementById("current-number").textContent = data.number;
+      numberEl.textContent = data.number;
     }
 
-    document.getElementById("call-button").addEventListener("click", async () => {
-      const res = await fetch("/api/call", { method: "POST" });
+    async function changeNumber(diff) {
+      const res = await fetch("/api/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ diff: diff })
+      });
       const data = await res.json();
-      document.getElementById("message").textContent = data.message;
+      messageEl.textContent = data.message;
       fetchCurrentNumber();
-    });
+    }
+
+    async function setNumber() {
+      const value = document.getElementById("set-number").value;
+      const num = parseInt(value);
+      if (isNaN(num) || num < 0) {
+        messageEl.textContent = "有効な番号を入力してください。";
+        return;
+      }
+
+      const res = await fetch("/api/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: num })
+      });
+      const data = await res.json();
+      messageEl.textContent = data.message;
+      fetchCurrentNumber();
+    }
 
     fetchCurrentNumber();
-    setInterval(fetchCurrentNumber, 5000); // 5秒ごとに更新
+    setInterval(fetchCurrentNumber, 5000);
   </script>
 </body>
 </html>
