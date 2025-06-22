@@ -70,8 +70,7 @@
 
     const DISABLE_MINUTES = 30;
     const DISABLE_MS = DISABLE_MINUTES * 60 * 1000;
-    const VALID_SECRET = "VIP1212"; // ★ 有効な秘密キー
-    const OVERRIDE_KEY = "overrideUsed";
+    const VALID_SECRET = "VIP1234";
 
     let countdownInterval = null;
     let overrideOnce = false;
@@ -95,12 +94,7 @@
         localStorage.setItem("ticketNumber", ticketNumber);
         localStorage.setItem("lastIssuedAt", Date.now());
 
-        if (overrideOnce) {
-          localStorage.setItem(OVERRIDE_KEY, "used");
-          overrideOnce = false;
-          secretStatus.textContent = "この端末では特別発行は一度使われました。";
-        }
-
+        overrideOnce = false;
         disableButtonForRemainingTime();
       } catch (err) {
         resultEl.textContent = "整理券の発行に失敗しました。";
@@ -167,28 +161,22 @@
       }
     }
 
-    // 🔑 秘密キー検証＆制限解除
+    // 🔑 秘密キー検証＆制限解除（何度でも使用可）
     function verifySecret() {
       const input = secretKeyInput.value.trim();
-      const overrideUsed = localStorage.getItem(OVERRIDE_KEY);
-      if (overrideUsed) {
-        secretStatus.textContent = "この端末ではすでに秘密キーが使用されました。";
-        return;
-      }
       if (input === VALID_SECRET) {
         overrideOnce = true;
-        localStorage.setItem("lastIssuedAt", 0); // ★ 制限時間を即リセット
+        localStorage.setItem("lastIssuedAt", 0); // 強制的に制限解除
         clearInterval(countdownInterval);
         issueButton.disabled = false;
         issueButton.classList.remove("disabled");
         countdownEl.textContent = "";
-        secretStatus.textContent = "制限を解除しました。次の発行はすぐ可能です。";
+        secretStatus.textContent = "制限を解除しました。何度でも発行できます。";
       } else {
         secretStatus.textContent = "無効な秘密キーです。";
       }
     }
 
-    // 初期処理
     window.addEventListener("DOMContentLoaded", () => {
       restoreTicketNumber();
       const lastIssued = getLastIssuedTime();
