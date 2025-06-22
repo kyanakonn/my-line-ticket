@@ -1,8 +1,8 @@
 const express = require("express");
 const axios = require("axios");
 const path = require("path");
-
 const app = express();
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -14,7 +14,8 @@ let ticketLog = []; // 発行ログ（{ number, timestamp, userId }）
 
 // LINE連携設定
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
-const LINE_API_URL = "https://api.line.me/v2/bot/message/push"; // push API に変更
+const LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push";
+const LINE_REPLY_URL = "https://api.line.me/v2/bot/message/reply";
 
 // LINE webhook: ユーザーがリンクを開いた時の userId 登録用
 app.post("/webhook", async (req, res) => {
@@ -32,7 +33,7 @@ app.post("/webhook", async (req, res) => {
 
   try {
     await axios.post(
-      "https://api.line.me/v2/bot/message/reply",
+      LINE_REPLY_URL,
       {
         replyToken: replyToken,
         messages: [
@@ -72,7 +73,7 @@ app.get("/api/number", (req, res) => {
   res.json({ number: currentNumber });
 });
 
-// 呼び出しを進める or 戻す（±差分を受け取る）
+// 呼び出しを進める or 戻す
 app.post("/api/call", (req, res) => {
   const diff = typeof req.body.diff === "number" ? req.body.diff : 1;
   currentNumber += diff;
@@ -95,7 +96,7 @@ app.get("/api/ticket/last", (req, res) => {
   res.json({ last: currentTicket - 1 });
 });
 
-// 整理券発行ログを取得（配列形式）
+// 整理券発行ログを取得
 app.get("/api/ticket/log", (req, res) => {
   res.json(ticketLog);
 });
@@ -115,7 +116,7 @@ app.post("/api/notify", async (req, res) => {
 
   try {
     await axios.post(
-      LINE_API_URL,
+      LINE_PUSH_URL,
       {
         to: entry.userId,
         messages: [
@@ -139,7 +140,7 @@ app.post("/api/notify", async (req, res) => {
   }
 });
 
-// ルートアクセス → ユーザー向けページへリダイレクト
+// ルートアクセス
 app.get("/", (req, res) => {
   res.redirect("/ticket.html");
 });
