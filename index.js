@@ -9,12 +9,14 @@ app.use(express.static("public")); // ← public フォルダを公開
 
 // 整理券番号管理
 let currentTicket = 1;
+let currentNumber = 0;
+let lastCalledTime = 0; // ミリ秒
 
 // LINE設定
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
 const LINE_API_URL = "https://api.line.me/v2/bot/message/reply";
 
-// LINE Webhook（ユーザーがメッセージ送ったらリンク返す）
+// ✅ LINE Webhook：リンク送信
 app.post("/webhook", async (req, res) => {
   const events = req.body.events;
   if (!events || events.length === 0) return res.status(200).send("No events");
@@ -30,7 +32,7 @@ app.post("/webhook", async (req, res) => {
         messages: [
           {
             type: "text",
-            text: `整理券はこちらから発行できます：\nhttps://my-line-ticket.onrender.com/ticket.html`,
+            text: `整理券はこちらから発行できます！：\nhttps://my-line-ticket.onrender.com/ticket.html`,
           },
         ],
       },
@@ -48,18 +50,38 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-// 整理券番号を返すAPI（HTMLのfetchで呼び出し）
+// ✅ 整理券発行エンドポイント
 app.post("/api/ticket", (req, res) => {
   const ticketNumber = currentTicket++;
   res.json({ number: ticketNumber });
 });
 
+// ✅ 現在の呼び出し番号取得エンドポイント
+app.get("/api/number", (req, res) => {
+  res.json({ number: currentNumber });
+});
+
+// ✅ 整理券呼び出し（30分間制限）
+app.post("/api/call", (req, res) => {
+  const now = Date.now();
+  if (now - lastCalledTime < 30 * 60 * 1000) {
+    const remaining = 30 * 60 * 1000 - (now - lastCalledTime);
+    const minutes = Math.ceil(remaining / 60000);
+    return res.json({ message: `次の整理券発行まであと ${minutes} 分待ってください。` });
+  }
+
+  currentNumber += 1;
+  lastCalledTime = now;
+  res.json({ message: `あなたの整理券番号は ${currentNumber} です。` });
+});
+
+// ✅ 初期表示
 app.get("/", (req, res) => {
   res.redirect("/ticket.html");
 });
 
-// サーバー起動（Render用）
+// ✅ サーバー起動（Render用）
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`✅ Server running on port ${port}`);
 });
