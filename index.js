@@ -26,9 +26,10 @@ app.post("/webhook", async (req, res) => {
   const replyToken = event.replyToken;
   const userId = event.source.userId;
 
-  // userId を仮の最新チケットに紐付け（最終整理券と紐付ける）
-  if (ticketLog.length > 0 && !ticketLog[ticketLog.length - 1].userId) {
-    ticketLog[ticketLog.length - 1].userId = userId;
+  // userId を仮の最新チケットに紐付け（userIdがまだnullの最新チケット）
+  const lastTicket = ticketLog.slice().reverse().find(t => !t.userId);
+  if (lastTicket) {
+    lastTicket.userId = userId;
   }
 
   try {
@@ -57,14 +58,17 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-// 整理券を発行する
+// 🎫 整理券を発行する（userIdを受け取り保存）
 app.post("/api/ticket", (req, res) => {
+  const { userId } = req.body;
+
   const ticketNumber = currentTicket++;
   ticketLog.push({
     number: ticketNumber,
     timestamp: Date.now(),
-    userId: null // 初期状態では未登録
+    userId: userId || null
   });
+
   res.json({ number: ticketNumber });
 });
 
@@ -140,7 +144,7 @@ app.post("/api/notify", async (req, res) => {
   }
 });
 
-// ルートアクセス
+// トップページリダイレクト
 app.get("/", (req, res) => {
   res.redirect("/ticket.html");
 });
