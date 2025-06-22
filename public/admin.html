@@ -25,6 +25,18 @@
       padding: 0.3em;
       text-align: center;
     }
+    table {
+      width: 80%;
+      margin: 2em auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5em;
+    }
+    th {
+      background: #f0f0f0;
+    }
     #auth-screen {
       margin-top: 5em;
     }
@@ -45,10 +57,13 @@
     <h1>管理者用：呼び出し操作</h1>
 
     <div class="number-display">
-       現在の呼び出し番号：<span id="current-number">--</span>
+      ✅ 現在の呼び出し番号：<span id="current-number">--</span>
     </div>
     <div class="number-display">
-       1番最新の整理券番号：<span id="last-ticket-number">--</span>
+      🎫 最後に発行された整理券番号：<span id="last-ticket-number">--</span>
+    </div>
+    <div class="number-display">
+      👥 発行人数の合計：<span id="total-issued">--</span>
     </div>
 
     <div>
@@ -63,10 +78,21 @@
     </div>
 
     <p id="message"></p>
+
+    <h2>📋 整理券発行ログ</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>整理券番号</th>
+          <th>発行日時</th>
+        </tr>
+      </thead>
+      <tbody id="log-table-body"></tbody>
+    </table>
   </div>
 
   <script>
-    const correctPassword = "kimu1212"; // ← パスワード
+    const correctPassword = "kimu1212";
 
     function checkPassword() {
       const input = document.getElementById("password-input").value;
@@ -74,21 +100,39 @@
       if (input === correctPassword) {
         document.getElementById("auth-screen").style.display = "none";
         document.getElementById("admin-screen").style.display = "block";
-        refreshNumbers();
-        setInterval(refreshNumbers, 5000);
+        refreshAll();
+        setInterval(refreshAll, 5000);
       } else {
         msg.textContent = "パスワードが違います。";
       }
     }
 
-    async function refreshNumbers() {
+    async function refreshAll() {
       const numberRes = await fetch("/api/number");
       const ticketRes = await fetch("/api/ticket/last");
+      const logRes = await fetch("/api/ticket/log");
+
       const numberData = await numberRes.json();
       const ticketData = await ticketRes.json();
+      const logData = await logRes.json();
 
       document.getElementById("current-number").textContent = numberData.number;
       document.getElementById("last-ticket-number").textContent = ticketData.last;
+      document.getElementById("total-issued").textContent = logData.length;
+
+      const tbody = document.getElementById("log-table-body");
+      tbody.innerHTML = "";
+
+      logData.slice().reverse().forEach(item => {
+        const row = document.createElement("tr");
+        const tdNumber = document.createElement("td");
+        const tdTime = document.createElement("td");
+        tdNumber.textContent = item.number;
+        tdTime.textContent = new Date(item.timestamp).toLocaleString();
+        row.appendChild(tdNumber);
+        row.appendChild(tdTime);
+        tbody.appendChild(row);
+      });
     }
 
     async function changeNumber(diff) {
@@ -99,7 +143,7 @@
       });
       const data = await res.json();
       document.getElementById("message").textContent = data.message;
-      refreshNumbers();
+      refreshAll();
     }
 
     async function setNumber() {
@@ -117,7 +161,7 @@
       });
       const data = await res.json();
       document.getElementById("message").textContent = data.message;
-      refreshNumbers();
+      refreshAll();
     }
   </script>
 </body>
