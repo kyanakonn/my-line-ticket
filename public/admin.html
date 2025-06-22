@@ -166,3 +166,55 @@
   </script>
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>管理者ページ - 通知送信</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+    }
+    input, button {
+      font-size: 1em;
+      padding: 0.5em;
+      margin: 0.5em;
+    }
+  </style>
+</head>
+<body>
+  <h1>管理者用通知ツール</h1>
+  <p>通知したい整理券番号を入力してください：</p>
+  <input type="number" id="notifyNumber" placeholder="例: 23">
+  <button onclick="sendNotification()">通知を送信</button>
+  <p id="message"></p>
+
+  <script>
+    async function sendNotification() {
+      const number = parseInt(document.getElementById("notifyNumber").value);
+      const msgEl = document.getElementById("message");
+
+      if (isNaN(number) || number <= 0) {
+        msgEl.textContent = "有効な整理券番号を入力してください。";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ number })
+        });
+
+        const data = await res.json();
+        msgEl.textContent = data.message;
+      } catch (err) {
+        msgEl.textContent = "通知送信中にエラーが発生しました。";
+      }
+    }
+  </script>
+</body>
+</html>
