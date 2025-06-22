@@ -70,7 +70,7 @@
 
     const DISABLE_MINUTES = 30;
     const DISABLE_MS = DISABLE_MINUTES * 60 * 1000;
-    const VALID_SECRET = "VIP1212"; // ★ ここに有効な秘密キーを設定
+    const VALID_SECRET = "VIP1234"; // ★ 有効な秘密キー
     const OVERRIDE_KEY = "overrideUsed";
 
     let countdownInterval = null;
@@ -167,7 +167,7 @@
       }
     }
 
-    // 🔑 秘密キー検証
+    // 🔑 秘密キー検証＆制限解除
     function verifySecret() {
       const input = secretKeyInput.value.trim();
       const overrideUsed = localStorage.getItem(OVERRIDE_KEY);
@@ -177,7 +177,12 @@
       }
       if (input === VALID_SECRET) {
         overrideOnce = true;
-        secretStatus.textContent = "1回だけ発行制限を解除します。";
+        localStorage.setItem("lastIssuedAt", 0); // ★ 制限時間を即リセット
+        clearInterval(countdownInterval);
+        issueButton.disabled = false;
+        issueButton.classList.remove("disabled");
+        countdownEl.textContent = "";
+        secretStatus.textContent = "制限を解除しました。次の発行はすぐ可能です。";
       } else {
         secretStatus.textContent = "無効な秘密キーです。";
       }
