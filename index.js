@@ -10,23 +10,29 @@ app.use(express.static("public"));
 // 整理券管理
 let currentTicket = 1;
 let currentNumber = 0;
-let ticketLog = []; // 発行ログ（{ number, timestamp }）
+let ticketLog = []; // 発行ログ（{ number, timestamp, userId }）
 
 // LINE連携設定
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
-const LINE_API_URL = "https://api.line.me/v2/bot/message/reply";
+const LINE_API_URL = "https://api.line.me/v2/bot/message/push"; // push API に変更
 
-// LINE webhook: メッセージを受け取ったらリンクを返信
+// LINE webhook: ユーザーがリンクを開いた時の userId 登録用
 app.post("/webhook", async (req, res) => {
   const events = req.body.events;
   if (!events || events.length === 0) return res.status(200).send("No events");
 
   const event = events[0];
   const replyToken = event.replyToken;
+  const userId = event.source.userId;
+
+  // userId を仮の最新チケットに紐付け（最終整理券と紐付ける）
+  if (ticketLog.length > 0 && !ticketLog[ticketLog.length - 1].userId) {
+    ticketLog[ticketLog.length - 1].userId = userId;
+  }
 
   try {
     await axios.post(
-      LINE_API_URL,
+      "https://api.line.me/v2/bot/message/reply",
       {
         replyToken: replyToken,
         messages: [
@@ -55,7 +61,8 @@ app.post("/api/ticket", (req, res) => {
   const ticketNumber = currentTicket++;
   ticketLog.push({
     number: ticketNumber,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    userId: null // 初期状態では未登録
   });
   res.json({ number: ticketNumber });
 });
@@ -93,6 +100,45 @@ app.get("/api/ticket/log", (req, res) => {
   res.json(ticketLog);
 });
 
+// 管理者が任意の整理券番号に通知を送る
+app.post("/api/notify", async (req, res) => {
+  const { number, message } = req.body;
+
+  if (typeof number !== "number" || number <= 0) {
+    return res.status(400).json({ message: "無効な整理券番号です。" });
+  }
+
+  const entry = ticketLog.find(t => t.number === number);
+  if (!entry || !entry.userId) {
+    return res.status(404).json({ message: `整理券番号 ${number} のユーザー情報が見つかりません。` });
+  }
+
+  try {
+    await axios.post(
+      LINE_API_URL,
+      {
+        to: entry.userId,
+        messages: [
+          {
+            type: "text",
+            text: message || `【手動通知】整理券番号 ${number} の方、まもなく順番です。`
+          }
+        ]
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${LINE_ACCESS_TOKEN}`,
+        }
+      }
+    );
+    res.json({ message: `番号 ${number} に通知を送信しました。` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "通知送信に失敗しました。" });
+  }
+});
+
 // ルートアクセス → ユーザー向けページへリダイレクト
 app.get("/", (req, res) => {
   res.redirect("/ticket.html");
@@ -102,26 +148,4 @@ app.get("/", (req, res) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
-});
-
-// 管理者が任意の整理券番号に通知を送る
-app.post("/api/notify", async (req, res) => {
-  const { number } = req.body;
-
-  if (typeof number !== "number" || number <= 0) {
-    return res.status(400).json({ message: "無効な整理券番号です。" });
-  }
-
-  const entry = ticketLog.find(t => t.number === number);
-  if (!entry) {
-    return res.status(404).json({ message: `整理券番号 ${number} の発行記録が見つかりません。` });
-  }
-
-  try {
-    await sendLineNotification(entry.userId, `【手動通知】整理券番号 ${number} の方、まもなく順番です。`);
-    res.json({ message: `番号 ${number} に通知を送信しました。` });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "通知送信に失敗しました。" });
-  }
 });
