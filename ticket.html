@@ -1,4 +1,3 @@
-<!-- public/ticket.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,7 +13,8 @@
     async function getTicket() {
       const res = await fetch('/api/ticket', { method: 'POST' });
       const data = await res.json();
-      document.getElementById('result').innerText = `あなたの整理券番号は ${data.ticket} 番です`;
+      document.getElementById('result').innerText =
+        `あなたの整理券番号は ${data.number} 番です`;
     }
   </script>
 </body>
