@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>管理者ページ - 呼び出し</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+    }
+    .current {
+      font-size: 2em;
+      color: darkblue;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>呼び出し管理ページ</h1>
+  <div class="current">
+    現在の呼び出し番号: <span id="current-number">--</span>
+  </div>
+  <button id="call-button">次の番号を呼び出す</button>
+  <p id="message"></p>
+
+  <script>
+    async function fetchCurrentNumber() {
+      const res = await fetch("/api/number");
+      const data = await res.json();
+      document.getElementById("current-number").textContent = data.number;
+    }
+
+    document.getElementById("call-button").addEventListener("click", async () => {
+      const res = await fetch("/api/call", { method: "POST" });
+      const data = await res.json();
+      document.getElementById("message").textContent = data.message;
+      fetchCurrentNumber();
+    });
+
+    fetchCurrentNumber();
+    setInterval(fetchCurrentNumber, 5000); // 5秒ごとに更新
+  </script>
+</body>
+</html>
