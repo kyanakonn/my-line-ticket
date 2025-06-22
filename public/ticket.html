@@ -14,6 +14,16 @@
       color: green;
       margin-top: 1em;
     }
+    .call-status {
+      margin-top: 2em;
+      font-size: 1.5em;
+      color: blue;
+    }
+    #call-button {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      font-size: 1em;
+    }
   </style>
 </head>
 <body>
@@ -21,12 +31,37 @@
   <button onclick="getTicket()">整理券を発行する</button>
   <div class="ticket" id="result"></div>
 
+  <div class="call-status">
+    現在の呼び出し番号: <span id="current-number">--</span><br>
+    <button id="call-button">呼び出す</button>
+    <p id="message"></p>
+  </div>
+
   <script>
     async function getTicket() {
       const res = await fetch("/api/ticket", { method: "POST" });
       const data = await res.json();
       document.getElementById("result").textContent = `あなたの整理券番号は ${data.number} 番です`;
     }
+
+    async function fetchCurrentNumber() {
+      const res = await fetch('/api/number');
+      const data = await res.json();
+      document.getElementById('current-number').textContent = data.number;
+    }
+
+    document.getElementById('call-button').addEventListener('click', async () => {
+      const res = await fetch('/api/call', { method: 'POST' });
+      const data = await res.json();
+      document.getElementById('message').textContent = data.message;
+      fetchCurrentNumber();
+    });
+
+    // 初期化時に現在の呼び出し番号を取得
+    fetchCurrentNumber();
+
+    // 定期的に呼び出し番号を更新（任意：5秒ごと）
+    setInterval(fetchCurrentNumber, 5000);
   </script>
 </body>
 </html>
