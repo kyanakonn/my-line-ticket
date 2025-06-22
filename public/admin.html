@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>呼び出し管理ページ</title>
+  <title>呼び出し管理ページ（管理者専用）</title>
   <style>
     body {
       font-family: sans-serif;
@@ -19,42 +19,69 @@
       margin: 0.5em;
       font-size: 1em;
     }
-    input[type="number"] {
+    input[type="number"], input[type="password"] {
       font-size: 1.2em;
       width: 5em;
       padding: 0.3em;
       text-align: center;
     }
+    #auth-screen {
+      margin-top: 5em;
+    }
   </style>
 </head>
 <body>
-  <h1>管理者用：呼び出し操作</h1>
 
-  <div class="number-display">
-    現在の呼び出し番号：<span id="current-number">--</span>
+  <!-- 🔐 パスワード入力画面 -->
+  <div id="auth-screen">
+    <h2>管理者ページにアクセスするにはパスワードを入力してください</h2>
+    <input type="password" id="password-input" placeholder="パスワード" />
+    <button onclick="checkPassword()">送信</button>
+    <p id="auth-message" style="color: red;"></p>
   </div>
 
-  <div>
-    <button onclick="changeNumber(-1)">戻る（-1）</button>
-    <button onclick="changeNumber(1)">進む（+1）</button>
-  </div>
+  <!-- ✅ 管理画面（最初は非表示） -->
+  <div id="admin-screen" style="display: none;">
+    <h1>管理者用：呼び出し操作</h1>
 
-  <div style="margin-top: 2em;">
-    <label for="set-number">番号を直接設定：</label>
-    <input type="number" id="set-number" min="0" />
-    <button onclick="setNumber()">変更</button>
-  </div>
+    <div class="number-display">
+      現在の呼び出し番号：<span id="current-number">--</span>
+    </div>
 
-  <p id="message"></p>
+    <div>
+      <button onclick="changeNumber(-1)">戻る（-1）</button>
+      <button onclick="changeNumber(1)">進む（+1）</button>
+    </div>
+
+    <div style="margin-top: 2em;">
+      <label for="set-number">番号を直接設定：</label>
+      <input type="number" id="set-number" min="0" />
+      <button onclick="setNumber()">変更</button>
+    </div>
+
+    <p id="message"></p>
+  </div>
 
   <script>
-    const numberEl = document.getElementById("current-number");
-    const messageEl = document.getElementById("message");
+    const correctPassword = "admin123"; // ← ここで任意のパスワードに変更！
+
+    function checkPassword() {
+      const input = document.getElementById("password-input").value;
+      const msg = document.getElementById("auth-message");
+      if (input === correctPassword) {
+        document.getElementById("auth-screen").style.display = "none";
+        document.getElementById("admin-screen").style.display = "block";
+        fetchCurrentNumber();
+        setInterval(fetchCurrentNumber, 5000);
+      } else {
+        msg.textContent = "パスワードが違います。";
+      }
+    }
 
     async function fetchCurrentNumber() {
       const res = await fetch("/api/number");
       const data = await res.json();
-      numberEl.textContent = data.number;
+      document.getElementById("current-number").textContent = data.number;
     }
 
     async function changeNumber(diff) {
@@ -64,7 +91,7 @@
         body: JSON.stringify({ diff: diff })
       });
       const data = await res.json();
-      messageEl.textContent = data.message;
+      document.getElementById("message").textContent = data.message;
       fetchCurrentNumber();
     }
 
@@ -72,7 +99,7 @@
       const value = document.getElementById("set-number").value;
       const num = parseInt(value);
       if (isNaN(num) || num < 0) {
-        messageEl.textContent = "有効な番号を入力してください。";
+        document.getElementById("message").textContent = "有効な番号を入力してください。";
         return;
       }
 
@@ -82,12 +109,9 @@
         body: JSON.stringify({ number: num })
       });
       const data = await res.json();
-      messageEl.textContent = data.message;
+      document.getElementById("message").textContent = data.message;
       fetchCurrentNumber();
     }
-
-    fetchCurrentNumber();
-    setInterval(fetchCurrentNumber, 5000);
   </script>
 </body>
 </html>
