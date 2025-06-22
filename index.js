@@ -5,18 +5,17 @@ const path = require("path");
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public")); // ← public フォルダを公開
+app.use(express.static("public"));
 
-// 整理券番号管理
+// 整理券管理
 let currentTicket = 1;
 let currentNumber = 0;
-let lastCalledTime = 0; // ミリ秒
 
-// LINE設定
+// LINE連携設定
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
 const LINE_API_URL = "https://api.line.me/v2/bot/message/reply";
 
-// ✅ LINE Webhook：リンク送信
+// LINE webhook: メッセージを受け取ったらリンクを返信
 app.post("/webhook", async (req, res) => {
   const events = req.body.events;
   if (!events || events.length === 0) return res.status(200).send("No events");
@@ -32,7 +31,7 @@ app.post("/webhook", async (req, res) => {
         messages: [
           {
             type: "text",
-            text: `整理券はこちらから発行できます！：\nhttps://my-line-ticket.onrender.com/ticket.html`,
+            text: `整理券はこちらから発行できます：\nhttps://my-line-ticket.onrender.com/ticket.html`,
           },
         ],
       },
@@ -45,34 +44,36 @@ app.post("/webhook", async (req, res) => {
     );
     res.status(200).send("OK");
   } catch (error) {
-    console.error("Error sending message:", error.response?.data || error.message);
+    console.error("LINEメッセージ送信失敗:", error.response?.data || error.message);
     res.status(500).send("Error");
   }
 });
 
-// ✅ 整理券発行エンドポイント
+// 整理券を発行する
 app.post("/api/ticket", (req, res) => {
   const ticketNumber = currentTicket++;
   res.json({ number: ticketNumber });
 });
 
-// ✅ 現在の呼び出し番号取得エンドポイント
+// 現在の呼び出し番号を取得する
 app.get("/api/number", (req, res) => {
   res.json({ number: currentNumber });
 });
 
+// 呼び出しを実行する（30分制限なし）
+app.post("/api/call", (req, res) => {
   currentNumber += 1;
-  lastCalledTime = now;
-  res.json({ message: `あなたの整理券番号は ${currentNumber} です。` });
+  res.json({ message: `番号 ${currentNumber} を呼び出しました。` });
 });
 
-// ✅ 初期表示
+// ルートアクセス → ユーザー向けページへリダイレクト
 app.get("/", (req, res) => {
   res.redirect("/ticket.html");
 });
 
-// ✅ サーバー起動（Render用）
+// サーバー起動
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
+
