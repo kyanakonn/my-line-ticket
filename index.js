@@ -67,7 +67,7 @@ app.post("/api/call", (req, res) => {
   if (now - lastCalledTime < 30 * 60 * 1000) {
     const remaining = 30 * 60 * 1000 - (now - lastCalledTime);
     const minutes = Math.ceil(remaining / 60000);
-    return res.json({ message: `次の整理券発行まであと ${minutes} 分待ってください。` });
+    return res.json({ message: `次の整理券発行は ${minutes} 分後にできます。` });
   }
 
   currentNumber += 1;
