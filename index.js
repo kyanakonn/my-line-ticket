@@ -60,10 +60,22 @@ app.get("/api/number", (req, res) => {
   res.json({ number: currentNumber });
 });
 
-// 呼び出しを実行する（30分制限なし）
+// 呼び出しを進める or 戻す（±差分を受け取る）
 app.post("/api/call", (req, res) => {
-  currentNumber += 1;
+  const diff = typeof req.body.diff === "number" ? req.body.diff : 1;
+  currentNumber += diff;
+  if (currentNumber < 0) currentNumber = 0;
   res.json({ message: `番号 ${currentNumber} を呼び出しました。` });
+});
+
+// 呼び出し番号を直接設定する
+app.post("/api/set", (req, res) => {
+  const { number } = req.body;
+  if (typeof number !== "number" || number < 0) {
+    return res.status(400).json({ message: "無効な番号です。" });
+  }
+  currentNumber = number;
+  res.json({ message: `呼び出し番号を ${currentNumber} に設定しました。` });
 });
 
 // ルートアクセス → ユーザー向けページへリダイレクト
@@ -76,4 +88,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
-
