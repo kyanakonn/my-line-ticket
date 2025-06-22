@@ -187,10 +187,12 @@
 
       if (isNaN(number) || number <= 0) {
         notifyEl.textContent = "有効な整理券番号を入力してください。";
+        notifyEl.style.color = "red";
         return;
       }
       if (message.length === 0) {
         notifyEl.textContent = "通知メッセージを入力してください。";
+        notifyEl.style.color = "red";
         return;
       }
 
@@ -203,8 +205,10 @@
 
         const data = await res.json();
         notifyEl.textContent = data.message || "通知を送信しました。";
+        notifyEl.style.color = "green";
       } catch (err) {
         notifyEl.textContent = "通知送信中にエラーが発生しました。";
+        notifyEl.style.color = "red";
         console.error(err);
       }
     }
