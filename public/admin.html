@@ -10,7 +10,7 @@
       padding: 2em;
     }
     .number-display {
-      font-size: 2em;
+      font-size: 1.5em;
       color: darkblue;
       margin: 1em 0;
     }
@@ -45,7 +45,10 @@
     <h1>管理者用：呼び出し操作</h1>
 
     <div class="number-display">
-      現在の呼び出し番号：<span id="current-number">--</span>
+      ✅ 現在の呼び出し番号：<span id="current-number">--</span>
+    </div>
+    <div class="number-display">
+      🎫 最後に発行された整理券番号：<span id="last-ticket-number">--</span>
     </div>
 
     <div>
@@ -63,7 +66,7 @@
   </div>
 
   <script>
-    const correctPassword = "kimu1212"; // ← ここパスワード変更
+    const correctPassword = "kimu1212"; // ← パスワード
 
     function checkPassword() {
       const input = document.getElementById("password-input").value;
@@ -71,17 +74,21 @@
       if (input === correctPassword) {
         document.getElementById("auth-screen").style.display = "none";
         document.getElementById("admin-screen").style.display = "block";
-        fetchCurrentNumber();
-        setInterval(fetchCurrentNumber, 5000);
+        refreshNumbers();
+        setInterval(refreshNumbers, 5000);
       } else {
         msg.textContent = "パスワードが違います。";
       }
     }
 
-    async function fetchCurrentNumber() {
-      const res = await fetch("/api/number");
-      const data = await res.json();
-      document.getElementById("current-number").textContent = data.number;
+    async function refreshNumbers() {
+      const numberRes = await fetch("/api/number");
+      const ticketRes = await fetch("/api/ticket/last");
+      const numberData = await numberRes.json();
+      const ticketData = await ticketRes.json();
+
+      document.getElementById("current-number").textContent = numberData.number;
+      document.getElementById("last-ticket-number").textContent = ticketData.last;
     }
 
     async function changeNumber(diff) {
@@ -92,7 +99,7 @@
       });
       const data = await res.json();
       document.getElementById("message").textContent = data.message;
-      fetchCurrentNumber();
+      refreshNumbers();
     }
 
     async function setNumber() {
@@ -110,7 +117,7 @@
       });
       const data = await res.json();
       document.getElementById("message").textContent = data.message;
-      fetchCurrentNumber();
+      refreshNumbers();
     }
   </script>
 </body>
