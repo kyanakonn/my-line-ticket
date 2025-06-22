@@ -61,15 +61,6 @@ app.get("/api/number", (req, res) => {
   res.json({ number: currentNumber });
 });
 
-// ✅ 整理券呼び出し（30分間制限）
-app.post("/api/call", (req, res) => {
-  const now = Date.now();
-  if (now - lastCalledTime < 30 * 60 * 1000) {
-    const remaining = 30 * 60 * 1000 - (now - lastCalledTime);
-    const minutes = Math.ceil(remaining / 60000);
-    return res.json({ message: `次の整理券発行は ${minutes} 分後にできます。` });
-  }
-
   currentNumber += 1;
   lastCalledTime = now;
   res.json({ message: `あなたの整理券番号は ${currentNumber} です。` });
