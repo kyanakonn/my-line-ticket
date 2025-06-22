@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>整理券発行</title>
+  <title>整理券発行ページ</title>
   <style>
     body {
       font-family: sans-serif;
@@ -14,10 +14,19 @@
       color: green;
       margin-top: 1em;
     }
+    .call-status {
+      font-size: 1.5em;
+      color: blue;
+      margin-top: 2em;
+    }
     .disabled {
       background-color: gray;
       color: white;
       cursor: not-allowed;
+    }
+    button {
+      font-size: 1em;
+      padding: 0.5em 1.2em;
     }
   </style>
 </head>
@@ -26,31 +35,35 @@
   <button id="issue-button" onclick="getTicket()">整理券を発行する</button>
   <div class="ticket" id="result"></div>
 
+  <div class="call-status">
+    現在の呼び出し番号：<span id="current-number">--</span>
+  </div>
+
   <script>
     const issueButton = document.getElementById("issue-button");
     const resultEl = document.getElementById("result");
+    const numberEl = document.getElementById("current-number");
 
-    // 発行処理
+    // 発行ボタン処理
     async function getTicket() {
       const res = await fetch("/api/ticket", { method: "POST" });
       const data = await res.json();
       resultEl.textContent = `あなたの整理券番号は ${data.number} 番です`;
 
-      // 押した時刻を保存（ミリ秒）
       const now = Date.now();
       localStorage.setItem("lastIssuedAt", now);
       disableButtonFor30Minutes();
     }
 
-    // ボタンを無効化し、30分後に有効化
+    // ボタンを30分無効にする
     function disableButtonFor30Minutes() {
       issueButton.disabled = true;
       issueButton.classList.add("disabled");
 
       const now = Date.now();
-      const timeout = 30 * 60 * 1000; // 30分
-
+      const timeout = 30 * 60 * 1000;
       const timeLeft = timeout - (now - getLastIssuedTime());
+
       if (timeLeft > 0) {
         setTimeout(() => {
           issueButton.disabled = false;
@@ -59,19 +72,33 @@
       }
     }
 
-    // 保存された発行時刻を取得
+    // 発行時刻取得
     function getLastIssuedTime() {
       const ts = localStorage.getItem("lastIssuedAt");
       return ts ? parseInt(ts) : 0;
     }
 
-    // 初回ページ読み込み時：すでに押していたらロック
+    // 現在の呼び出し番号を取得
+    async function fetchCurrentNumber() {
+      try {
+        const res = await fetch("/api/number");
+        const data = await res.json();
+        numberEl.textContent = data.number;
+      } catch (err) {
+        numberEl.textContent = "取得失敗";
+      }
+    }
+
+    // ページ読み込み時処理
     window.addEventListener("load", () => {
       const lastIssued = getLastIssuedTime();
       const now = Date.now();
       if (now - lastIssued < 30 * 60 * 1000) {
         disableButtonFor30Minutes();
       }
+
+      fetchCurrentNumber();
+      setInterval(fetchCurrentNumber, 5000); // 5秒ごとに更新
     });
   </script>
 </body>
