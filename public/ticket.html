@@ -203,6 +203,7 @@
     function togglePassword() {
       const isHidden = secretKeyInput.type === "password";
       secretKeyInput.type = isHidden ? "text" : "password";
+      toggleBtn.textContent = isHidden ? "㊙" : "👁";
     }
 
     window.addEventListener("DOMContentLoaded", () => {
