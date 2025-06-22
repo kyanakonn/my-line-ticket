@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>整理券発行ページ</title>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: sans-serif;
@@ -39,6 +40,23 @@
     #secret-status {
       color: green;
     }
+    #secret-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5em;
+    }
+    #secret-key {
+      font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Arial Rounded MT Bold', sans-serif;
+      font-size: 1em;
+      padding: 0.4em;
+    }
+    #toggle-visibility {
+      cursor: pointer;
+      font-size: 1.2em;
+      background: none;
+      border: none;
+    }
   </style>
 </head>
 <body>
@@ -46,8 +64,11 @@
 
   <!-- 🔐 秘密キー入力 -->
   <div id="secret-section">
-    <input type="text" id="secret-key" placeholder="秘密キーを入力">
-    <button onclick="verifySecret()">解除</button>
+    <div id="secret-container">
+      <input type="password" id="secret-key" placeholder="秘密キーを入力">
+      <button id="toggle-visibility" onclick="togglePassword()">👁</button>
+      <button onclick="verifySecret()">解除</button>
+    </div>
     <p id="secret-status"></p>
   </div>
 
@@ -67,6 +88,7 @@
     const countdownEl = document.getElementById("countdown");
     const secretKeyInput = document.getElementById("secret-key");
     const secretStatus = document.getElementById("secret-status");
+    const toggleBtn = document.getElementById("toggle-visibility");
 
     const DISABLE_MINUTES = 30;
     const DISABLE_MS = DISABLE_MINUTES * 60 * 1000;
@@ -166,15 +188,22 @@
       const input = secretKeyInput.value.trim();
       if (input === VALID_SECRET) {
         overrideOnce = true;
-        localStorage.setItem("lastIssuedAt", 0); // 強制的に制限解除
+        localStorage.setItem("lastIssuedAt", 0); // 制限解除
         clearInterval(countdownInterval);
         issueButton.disabled = false;
         issueButton.classList.remove("disabled");
         countdownEl.textContent = "";
-        secretStatus.textContent = "制限を解除しました。何度でも発行できます。";
+        secretStatus.textContent = "制限を解除しました。次の発行はすぐ可能です。";
       } else {
         secretStatus.textContent = "無効な秘密キーです。";
       }
+    }
+
+    // 👁 パスワード表示/非表示切り替え
+    function togglePassword() {
+      const isHidden = secretKeyInput.type === "password";
+      secretKeyInput.type = isHidden ? "text" : "password";
+      toggleBtn.textContent = isHidden ? "🙈" : "👁";
     }
 
     window.addEventListener("DOMContentLoaded", () => {
