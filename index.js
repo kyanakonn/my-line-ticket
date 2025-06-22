@@ -54,6 +54,10 @@ app.post("/api/ticket", (req, res) => {
   res.json({ number: ticketNumber });
 });
 
+app.get("/", (req, res) => {
+  res.redirect("/ticket.html");
+});
+
 // サーバー起動（Render用）
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
