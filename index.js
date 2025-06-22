@@ -103,3 +103,25 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
 });
+
+// 管理者が任意の整理券番号に通知を送る
+app.post("/api/notify", async (req, res) => {
+  const { number } = req.body;
+
+  if (typeof number !== "number" || number <= 0) {
+    return res.status(400).json({ message: "無効な整理券番号です。" });
+  }
+
+  const entry = ticketLog.find(t => t.number === number);
+  if (!entry) {
+    return res.status(404).json({ message: `整理券番号 ${number} の発行記録が見つかりません。` });
+  }
+
+  try {
+    await sendLineNotification(entry.userId, `【手動通知】整理券番号 ${number} の方、まもなく順番です。`);
+    res.json({ message: `番号 ${number} に通知を送信しました。` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "通知送信に失敗しました。" });
+  }
+});
