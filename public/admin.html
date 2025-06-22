@@ -19,11 +19,19 @@
       margin: 0.5em;
       font-size: 1em;
     }
-    input[type="number"], input[type="password"] {
+    input[type="number"], input[type="password"], textarea {
       font-size: 1.2em;
-      width: 5em;
       padding: 0.3em;
+      margin: 0.5em;
       text-align: center;
+    }
+    input[type="number"] {
+      width: 5em;
+    }
+    textarea {
+      width: 80%;
+      max-width: 400px;
+      height: 100px;
     }
     table {
       width: 80%;
@@ -78,6 +86,14 @@
     </div>
 
     <p id="message"></p>
+
+    <h2>📩 任意の整理券番号に通知を送信</h2>
+    <input type="number" id="notifyNumber" placeholder="整理券番号 (例: 23)" />
+    <br>
+    <textarea id="notifyMessage" placeholder="通知メッセージを入力してください"></textarea>
+    <br>
+    <button onclick="sendNotification()">通知を送信</button>
+    <p id="notify-status" style="color: green;"></p>
 
     <h2>📋 整理券発行記録</h2>
     <table>
@@ -163,42 +179,18 @@
       document.getElementById("message").textContent = data.message;
       refreshAll();
     }
-  </script>
-</body>
-</html>
 
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>管理者ページ - 通知送信</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2em;
-    }
-    input, button {
-      font-size: 1em;
-      padding: 0.5em;
-      margin: 0.5em;
-    }
-  </style>
-</head>
-<body>
-  <h1>管理者用通知ツール</h1>
-  <p>通知したい整理券番号を入力してください：</p>
-  <input type="number" id="notifyNumber" placeholder="例: 23">
-  <button onclick="sendNotification()">通知を送信</button>
-  <p id="message"></p>
-
-  <script>
     async function sendNotification() {
       const number = parseInt(document.getElementById("notifyNumber").value);
-      const msgEl = document.getElementById("message");
+      const message = document.getElementById("notifyMessage").value.trim();
+      const notifyEl = document.getElementById("notify-status");
 
       if (isNaN(number) || number <= 0) {
-        msgEl.textContent = "有効な整理券番号を入力してください。";
+        notifyEl.textContent = "有効な整理券番号を入力してください。";
+        return;
+      }
+      if (message.length === 0) {
+        notifyEl.textContent = "通知メッセージを入力してください。";
         return;
       }
 
@@ -206,13 +198,14 @@
         const res = await fetch("/api/notify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ number })
+          body: JSON.stringify({ number, message })
         });
 
         const data = await res.json();
-        msgEl.textContent = data.message;
+        notifyEl.textContent = data.message || "通知を送信しました。";
       } catch (err) {
-        msgEl.textContent = "通知送信中にエラーが発生しました。";
+        notifyEl.textContent = "通知送信中にエラーが発生しました。";
+        console.error(err);
       }
     }
   </script>
