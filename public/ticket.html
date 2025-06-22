@@ -24,6 +24,11 @@
       color: white;
       cursor: not-allowed;
     }
+    .timer {
+      font-size: 1.2em;
+      margin-top: 1em;
+      color: red;
+    }
     button {
       font-size: 1em;
       padding: 0.5em 1.2em;
@@ -33,52 +38,96 @@
 <body>
   <h1>整理券発行ページ</h1>
   <button id="issue-button" onclick="getTicket()">整理券を発行する</button>
-  <div class="ticket" id="result"></div>
+  <div class="ticket" id="result">まだ整理券は発行されていません。</div>
 
   <div class="call-status">
     現在の呼び出し番号：<span id="current-number">--</span>
   </div>
 
+  <div class="timer" id="countdown"></div>
+
   <script>
     const issueButton = document.getElementById("issue-button");
     const resultEl = document.getElementById("result");
     const numberEl = document.getElementById("current-number");
+    const countdownEl = document.getElementById("countdown");
 
-    // 発行ボタン処理
+    const DISABLE_MINUTES = 30;
+    const DISABLE_MS = DISABLE_MINUTES * 60 * 1000;
+    let countdownInterval = null;
+
+    // 整理券を発行
     async function getTicket() {
-      const res = await fetch("/api/ticket", { method: "POST" });
-      const data = await res.json();
-      resultEl.textContent = `あなたの整理券番号は ${data.number} 番です`;
+      try {
+        const res = await fetch("/api/ticket", { method: "POST" });
+        const data = await res.json();
+        const ticketNumber = data.number;
 
-      const now = Date.now();
-      localStorage.setItem("lastIssuedAt", now);
-      disableButtonFor30Minutes();
+        resultEl.textContent = `あなたの整理券番号は ${ticketNumber} 番です`;
+        localStorage.setItem("ticketNumber", ticketNumber);
+        localStorage.setItem("lastIssuedAt", Date.now());
+
+        disableButtonForRemainingTime();
+      } catch (err) {
+        resultEl.textContent = "整理券の発行に失敗しました。";
+        console.error(err);
+      }
     }
 
-    // ボタンを30分無効にする
-    function disableButtonFor30Minutes() {
-      issueButton.disabled = true;
-      issueButton.classList.add("disabled");
-
+    // ボタンを無効にし、タイマーを表示
+    function disableButtonForRemainingTime() {
+      const lastIssued = getLastIssuedTime();
       const now = Date.now();
-      const timeout = 30 * 60 * 1000;
-      const timeLeft = timeout - (now - getLastIssuedTime());
+      const timeLeft = DISABLE_MS - (now - lastIssued);
 
       if (timeLeft > 0) {
+        issueButton.disabled = true;
+        issueButton.classList.add("disabled");
+        startCountdown(timeLeft);
         setTimeout(() => {
           issueButton.disabled = false;
           issueButton.classList.remove("disabled");
+          countdownEl.textContent = "";
+          clearInterval(countdownInterval);
         }, timeLeft);
       }
     }
 
-    // 発行時刻取得
+    // カウントダウン開始
+    function startCountdown(ms) {
+      updateCountdown(ms);
+      countdownInterval = setInterval(() => {
+        ms -= 1000;
+        if (ms <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = "";
+        } else {
+          updateCountdown(ms);
+        }
+      }, 1000);
+    }
+
+    function updateCountdown(ms) {
+      const minutes = Math.floor(ms / 60000);
+      const seconds = Math.floor((ms % 60000) / 1000);
+      countdownEl.textContent = `あと ${minutes}分 ${seconds}秒 で再発行できます`;
+    }
+
+    // 整理券番号を復元
+    function restoreTicketNumber() {
+      const saved = localStorage.getItem("ticketNumber");
+      if (saved) {
+        resultEl.textContent = `あなたの整理券番号は ${saved} 番です`;
+      }
+    }
+
+    // 最終発行時刻取得
     function getLastIssuedTime() {
       const ts = localStorage.getItem("lastIssuedAt");
       return ts ? parseInt(ts) : 0;
     }
 
-    // 現在の呼び出し番号を取得
+    // 呼び出し番号取得
     async function fetchCurrentNumber() {
       try {
         const res = await fetch("/api/number");
@@ -89,16 +138,17 @@
       }
     }
 
-    // ページ読み込み時処理
-    window.addEventListener("load", () => {
+    // 初期処理
+    window.addEventListener("DOMContentLoaded", () => {
+      restoreTicketNumber();
       const lastIssued = getLastIssuedTime();
       const now = Date.now();
-      if (now - lastIssued < 30 * 60 * 1000) {
-        disableButtonFor30Minutes();
+      const timeLeft = DISABLE_MS - (now - lastIssued);
+      if (timeLeft > 0) {
+        disableButtonForRemainingTime();
       }
-
       fetchCurrentNumber();
-      setInterval(fetchCurrentNumber, 5000); // 5秒ごとに更新
+      setInterval(fetchCurrentNumber, 5000); // 呼び出し番号を5秒ごとに更新
     });
   </script>
 </body>
