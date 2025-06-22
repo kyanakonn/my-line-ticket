@@ -5,58 +5,20 @@
   <title>整理券発行ページ</title>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2em;
-    }
-    .ticket {
-      font-size: 2em;
-      color: green;
-      margin-top: 1em;
-    }
-    .call-status {
-      font-size: 1.5em;
-      color: blue;
-      margin-top: 2em;
-    }
-    .disabled {
-      background-color: gray;
-      color: white;
-      cursor: not-allowed;
-    }
-    .timer {
-      font-size: 1.2em;
-      margin-top: 1em;
-      color: red;
-    }
-    button {
-      font-size: 1em;
-      padding: 0.5em 1.2em;
-    }
-    #secret-section {
-      margin: 1em 0;
-    }
-    #secret-status {
-      color: green;
-    }
-    #secret-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5em;
-    }
+    body { font-family: sans-serif; text-align: center; padding: 2em; }
+    .ticket { font-size: 2em; color: green; margin-top: 1em; }
+    .call-status { font-size: 1.5em; color: blue; margin-top: 2em; }
+    .disabled { background-color: gray; color: white; cursor: not-allowed; }
+    .timer { font-size: 1.2em; margin-top: 1em; color: red; }
+    button { font-size: 1em; padding: 0.5em 1.2em; }
+    #secret-section { margin: 1em 0; }
+    #secret-status { color: green; }
+    #secret-container { display: flex; justify-content: center; align-items: center; gap: 0.5em; }
     #secret-key {
       font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Arial Rounded MT Bold', sans-serif;
-      font-size: 1em;
-      padding: 0.4em;
+      font-size: 1em; padding: 0.4em;
     }
-    #toggle-visibility {
-      cursor: pointer;
-      font-size: 1.2em;
-      background: none;
-      border: none;
-    }
+    #toggle-visibility { cursor: pointer; font-size: 1.2em; background: none; border: none; }
   </style>
 </head>
 <body>
@@ -97,6 +59,9 @@
     let countdownInterval = null;
     let overrideOnce = false;
 
+    // 👇 ここでユーザーIDをLIFFなどで取得した前提で定義
+    const userId = "LINEのユーザーID"; // ← 実際は LIFF.getProfile() などで取得してください
+
     async function getTicket() {
       const lastIssued = getLastIssuedTime();
       const now = Date.now();
@@ -108,7 +73,12 @@
       }
 
       try {
-        const res = await fetch("/api/ticket", { method: "POST" });
+        const res = await fetch("/api/ticket", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }) // ← 👈 userIdを送信
+        });
+
         const data = await res.json();
         const ticketNumber = data.number;
 
@@ -183,12 +153,11 @@
       }
     }
 
-    // 🔑 秘密キー検証＆制限解除（何度でも使用可）
     function verifySecret() {
       const input = secretKeyInput.value.trim();
       if (input === VALID_SECRET) {
         overrideOnce = true;
-        localStorage.setItem("lastIssuedAt", 0); // 制限解除
+        localStorage.setItem("lastIssuedAt", 0);
         clearInterval(countdownInterval);
         issueButton.disabled = false;
         issueButton.classList.remove("disabled");
@@ -199,7 +168,6 @@
       }
     }
 
-    // 👁 パスワード表示/非表示切り替え
     function togglePassword() {
       const isHidden = secretKeyInput.type === "password";
       secretKeyInput.type = isHidden ? "text" : "password";
