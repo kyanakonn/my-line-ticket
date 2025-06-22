@@ -5,15 +5,16 @@ const path = require("path");
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public")); // ← public フォルダを公開
 
-// 簡易的な整理券カウンター
+// 整理券番号管理
 let currentTicket = 1;
 
 // LINE設定
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
 const LINE_API_URL = "https://api.line.me/v2/bot/message/reply";
 
-// LINE Webhook
+// LINE Webhook（ユーザーがメッセージ送ったらリンク返す）
 app.post("/webhook", async (req, res) => {
   const events = req.body.events;
   if (!events || events.length === 0) return res.status(200).send("No events");
@@ -29,14 +30,14 @@ app.post("/webhook", async (req, res) => {
         messages: [
           {
             type: "text",
-            text: `整理券はこちらから発行できます：\nhttps://your-app-name.onrender.com/ticket`,
+            text: `整理券はこちらから発行できます：\nhttps://my-line-ticket.onrender.com/ticket.html`,
           },
         ],
       },
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${CHANNEL_ACCESS_TOKEN}`,
+          Authorization: `Bearer ${LINE_ACCESS_TOKEN}`,
         },
       }
     );
@@ -47,51 +48,14 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-// 整理券ページ
-app.get("/ticket", (req, res) => {
-  const ticketNumber = currentTicket++;
-  res.send(`
-    <html>
-      <head>
-        <meta charset="UTF-8" />
-        <title>整理券発行</title>
-        <style>
-          body { font-family: sans-serif; text-align: center; padding: 2em; }
-          .ticket { font-size: 3em; color: green; }
-        </style>
-      </head>
-      <body>
-        <h1>整理券番号</h1>
-        <div class="ticket">${ticketNumber}</div>
-        <p>画面を保存してください。</p>
-      </body>
-    </html>
-  `);
-});
-
-// Render用
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log("Server running on port " + port);
-});
-const express = require("express");
-const app = express();
-const path = require("path");
-
-app.use(express.json());
-app.use(express.static("public")); // ← public以下を公開
-
-let currentTicket = 1;
-
-// 整理券発行エンドポイント
+// 整理券番号を返すAPI（HTMLのfetchで呼び出し）
 app.post("/api/ticket", (req, res) => {
   const ticketNumber = currentTicket++;
   res.json({ number: ticketNumber });
 });
 
-// ポート指定（Render用）
+// サーバー起動（Render用）
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-
