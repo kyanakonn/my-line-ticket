@@ -1,1 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>整理券発行</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+    }
+    .ticket {
+      font-size: 2em;
+      color: green;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>整理券発行ページ</h1>
+  <button onclick="getTicket()">整理券を発行する</button>
+  <div class="ticket" id="result"></div>
 
+  <script>
+    async function getTicket() {
+      const res = await fetch("/api/ticket", { method: "POST" });
+      const data = await res.json();
+      document.getElementById("result").textContent = `あなたの整理券番号は ${data.number} 番です`;
+    }
+  </script>
+</body>
+</html>
