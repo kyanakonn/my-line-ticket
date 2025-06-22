@@ -74,4 +74,24 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log("Server running on port " + port);
 });
+const express = require("express");
+const app = express();
+const path = require("path");
+
+app.use(express.json());
+app.use(express.static("public")); // ← public以下を公開
+
+let currentTicket = 1;
+
+// 整理券発行エンドポイント
+app.post("/api/ticket", (req, res) => {
+  const ticketNumber = currentTicket++;
+  res.json({ number: ticketNumber });
+});
+
+// ポート指定（Render用）
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
 
