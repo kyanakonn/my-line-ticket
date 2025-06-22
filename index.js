@@ -10,6 +10,7 @@ app.use(express.static("public"));
 // 整理券管理
 let currentTicket = 1;
 let currentNumber = 0;
+let ticketLog = []; // 発行ログ（{ number, timestamp }）
 
 // LINE連携設定
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
@@ -52,6 +53,10 @@ app.post("/webhook", async (req, res) => {
 // 整理券を発行する
 app.post("/api/ticket", (req, res) => {
   const ticketNumber = currentTicket++;
+  ticketLog.push({
+    number: ticketNumber,
+    timestamp: Date.now()
+  });
   res.json({ number: ticketNumber });
 });
 
@@ -78,6 +83,16 @@ app.post("/api/set", (req, res) => {
   res.json({ message: `呼び出し番号を ${currentNumber} に設定しました。` });
 });
 
+// 最後に発行された整理券番号を取得
+app.get("/api/ticket/last", (req, res) => {
+  res.json({ last: currentTicket - 1 });
+});
+
+// 整理券発行ログを取得（配列形式）
+app.get("/api/ticket/log", (req, res) => {
+  res.json(ticketLog);
+});
+
 // ルートアクセス → ユーザー向けページへリダイレクト
 app.get("/", (req, res) => {
   res.redirect("/ticket.html");
@@ -87,8 +102,4 @@ app.get("/", (req, res) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
-});
-
-app.get("/api/ticket/last", (req, res) => {
-  res.json({ last: currentTicket - 1 });
 });
