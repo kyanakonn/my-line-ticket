@@ -143,7 +143,7 @@
       countdownEl.textContent = `あと ${minutes}分 ${seconds}秒 後に再発行できます`;
     }
 
-    function restoreTicketNumber() {
+    function restoreTicketNumber() 
       const saved = localStorage.getItem("ticketNumber");
       if (saved) {
         resultEl.textContent = `あなたの整理券番号は ${saved} 番です`;
