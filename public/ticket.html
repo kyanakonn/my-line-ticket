@@ -3,71 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <title>整理券発行ページ</title>
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 2em; }
-    .ticket { font-size: 2em; color: green; margin-top: 1em; }
-    .call-status { font-size: 1.5em; color: blue; margin-top: 2em; }
-    .disabled { background-color: gray; color: white; cursor: not-allowed; }
-    .timer { font-size: 1.2em; margin-top: 1em; color: red; }
-    button { font-size: 1em; padding: 0.5em 1.2em; }
-    #secret-section { margin: 1em 0; }
-    #secret-status { color: green; }
-    #secret-container { display: flex; justify-content: center; align-items: center; gap: 0.5em; }
-    #secret-key {
-      font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Arial Rounded MT Bold', sans-serif;
-      font-size: 1em; padding: 0.4em;
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
     }
-    #toggle-visibility { cursor: pointer; font-size: 1.2em; background: none; border: none; }
+    .ticket {
+      font-size: 2em;
+      color: green;
+      margin-top: 1em;
+    }
+    .call-status {
+      font-size: 1.5em;
+      color: blue;
+      margin-top: 2em;
+    }
+    .disabled {
+      background-color: gray;
+      color: white;
+      cursor: not-allowed;
+    }
+    .timer {
+      font-size: 1.2em;
+      margin-top: 1em;
+      color: red;
+    }
+    button {
+      font-size: 1em;
+      padding: 0.5em 1.2em;
+    }
   </style>
 </head>
 <body>
   <h1>整理券発行ページ</h1>
 
-  <!-- 🔐 秘密キー入力 -->
-  <div id="secret-section">
-    <div id="secret-container">
-      <input type="password" id="secret-key" placeholder="秘密キーを入力">
-      <button id="toggle-visibility" onclick="togglePassword()">👁</button>
-      <button onclick="verifySecret()">解除</button>
-    </div>
-    <p id="secret-status"></p>
-  </div>
-
-  <button id="issue-button" onclick="getTicket()">整理券を発行する</button>
+  <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
   <div class="ticket" id="result">あなたの整理券は発行されていません。</div>
 
   <div class="call-status">
     現在の呼び出し番号：<span id="current-number">--</span>
   </div>
-
   <div class="timer" id="countdown"></div>
 
   <script>
-    const issueButton = document.getElementById("issue-button");
-    const resultEl = document.getElementById("result");
-    const numberEl = document.getElementById("current-number");
-    const countdownEl = document.getElementById("countdown");
-    const secretKeyInput = document.getElementById("secret-key");
-    const secretStatus = document.getElementById("secret-status");
-    const toggleBtn = document.getElementById("toggle-visibility");
-
     const DISABLE_MINUTES = 30;
     const DISABLE_MS = DISABLE_MINUTES * 60 * 1000;
     const VALID_SECRET = "VIP1212";
 
-    let countdownInterval = null;
-    let overrideOnce = false;
+    const issueButton = document.getElementById("issue-button");
+    const resultEl = document.getElementById("result");
+    const numberEl = document.getElementById("current-number");
+    const countdownEl = document.getElementById("countdown");
 
-    // 👇 ここでユーザーIDをLIFFなどで取得した前提で定義
-    const userId = "2007636118-xGZvpLJM"; // ← 実際は LIFF.getProfile() などで取得してください
+    let userId = null;
+    let countdownInterval = null;
+
+    async function initializeLIFF() {
+      await liff.init({ liffId: "2007636118-xGZvpLJM" });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+      } else {
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        issueButton.disabled = false;
+        restoreTicketNumber();
+        disableButtonForRemainingTime();
+        fetchCurrentNumber();
+        setInterval(fetchCurrentNumber, 3000);
+      }
+    }
 
     async function getTicket() {
       const lastIssued = getLastIssuedTime();
       const now = Date.now();
       const timeLeft = DISABLE_MS - (now - lastIssued);
 
-      if (timeLeft > 0 && !overrideOnce) {
+      if (timeLeft > 0) {
         resultEl.textContent = "30分以内のため発行できません。";
         return;
       }
@@ -76,7 +89,7 @@
         const res = await fetch("/api/ticket", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }) // ← 👈 userIdを送信
+          body: JSON.stringify({ userId })
         });
 
         const data = await res.json();
@@ -86,7 +99,6 @@
         localStorage.setItem("ticketNumber", ticketNumber);
         localStorage.setItem("lastIssuedAt", Date.now());
 
-        overrideOnce = false;
         disableButtonForRemainingTime();
       } catch (err) {
         resultEl.textContent = "整理券の発行に失敗しました。";
@@ -153,38 +165,7 @@
       }
     }
 
-    function verifySecret() {
-      const input = secretKeyInput.value.trim();
-      if (input === VALID_SECRET) {
-        overrideOnce = true;
-        localStorage.setItem("lastIssuedAt", 0);
-        clearInterval(countdownInterval);
-        issueButton.disabled = false;
-        issueButton.classList.remove("disabled");
-        countdownEl.textContent = "";
-        secretStatus.textContent = "制限を解除しました。";
-      } else {
-        secretStatus.textContent = "無効な秘密キーです。";
-      }
-    }
-
-    function togglePassword() {
-      const isHidden = secretKeyInput.type === "password";
-      secretKeyInput.type = isHidden ? "text" : "password";
-      toggleBtn.textContent = isHidden ? "㊙" : "👁";
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      restoreTicketNumber();
-      const lastIssued = getLastIssuedTime();
-      const now = Date.now();
-      const timeLeft = DISABLE_MS - (now - lastIssued);
-      if (timeLeft > 0) {
-        disableButtonForRemainingTime();
-      }
-      fetchCurrentNumber();
-      setInterval(fetchCurrentNumber, 3000);
-    });
+    window.addEventListener("DOMContentLoaded", initializeLIFF);
   </script>
 </body>
 </html>
