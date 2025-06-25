@@ -50,8 +50,6 @@
   <script>
     const DISABLE_MINUTES = 30;
     const DISABLE_MS = DISABLE_MINUTES * 60 * 1000;
-    const VALID_SECRET = "VIP1212";
-
     const issueButton = document.getElementById("issue-button");
     const resultEl = document.getElementById("result");
     const numberEl = document.getElementById("current-number");
@@ -62,17 +60,20 @@
 
     async function initializeLIFF() {
       await liff.init({ liffId: "2007636118-xGZvpLJM" });
+
       if (!liff.isLoggedIn()) {
-        liff.login();
-      } else {
-        const profile = await liff.getProfile();
-        userId = profile.userId;
-        issueButton.disabled = false;
-        restoreTicketNumber();
-        disableButtonForRemainingTime();
-        fetchCurrentNumber();
-        setInterval(fetchCurrentNumber, 3000);
+        liff.login({ redirectUri: window.location.href });
+        return; // 無限ループ防止！
       }
+
+      const profile = await liff.getProfile();
+      userId = profile.userId;
+      issueButton.disabled = false;
+
+      restoreTicketNumber();
+      disableButtonForRemainingTime();
+      fetchCurrentNumber();
+      setInterval(fetchCurrentNumber, 3000);
     }
 
     async function getTicket() {
