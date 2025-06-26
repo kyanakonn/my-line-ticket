@@ -4,19 +4,78 @@
   <meta charset="UTF-8" />
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- フォント -->
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 2em; }
-    .ticket { font-size: 2em; color: green; margin-top: 1em; }
-    .call-status { font-size: 1.5em; color: blue; margin-top: 2em; }
-    .disabled { background-color: gray; color: white; cursor: not-allowed; }
-    .timer { font-size: 1.2em; margin-top: 1em; color: red; }
-    .secret { margin-top: 2em; }
-    button { font-size: 1em; padding: 0.5em 1.2em; }
+    body {
+      font-family: 'Creepster', cursive;
+      background-color: black;
+      color: red;
+      text-align: center;
+      padding: 2em;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 1em;
+    }
+
+    .ticket {
+      font-size: 2em;
+      color: red;
+      margin-top: 1em;
+    }
+
+    .call-status {
+      font-size: 1.5em;
+      color: red;
+      margin-top: 2em;
+    }
+
+    .disabled {
+      background-color: darkred;
+      color: black;
+      cursor: not-allowed;
+    }
+
+    .timer {
+      font-size: 1.2em;
+      margin-top: 1em;
+      color: crimson;
+    }
+
+    .secret {
+      margin-top: 2em;
+    }
+
+    button {
+      font-size: 1em;
+      padding: 0.5em 1.2em;
+      background-color: red;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      margin: 0.5em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: darkred;
+    }
+
     input[type="password"] {
       font-size: 1em;
       padding: 0.4em;
       width: 200px;
       text-align: center;
+      border: 2px solid red;
+      background-color: black;
+      color: red;
+    }
+
+    #secret-status {
+      color: crimson;
     }
   </style>
 </head>
@@ -28,11 +87,10 @@
   <div class="call-status">現在の呼び出し番号：<span id="current-number">--</span></div>
   <div class="timer" id="countdown"></div>
 
-  <!-- 秘密キー入力欄 -->
   <div class="secret">
     <input type="password" id="secret-input" placeholder="秘密キーを入力" />
     <button onclick="useSecret()">解除</button>
-    <p id="secret-status" style="color: green;"></p>
+    <p id="secret-status"></p>
   </div>
 
   <script>
@@ -104,7 +162,7 @@
         localStorage.setItem("lastIssuedAt", Date.now());
 
         disableButtonForRemainingTime();
-        secretStatus.textContent = ""; // 成功後の解除メッセージを消す
+        secretStatus.textContent = "";
       } catch (err) {
         resultEl.textContent = "整理券の発行に失敗しました。";
         console.error(err);
@@ -164,7 +222,6 @@
       }
     }
 
-    // 秘密キー解除ボタン
     function useSecret() {
       const input = secretInput.value.trim();
       if (input === SECRET_KEY) {
