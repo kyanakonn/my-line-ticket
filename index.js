@@ -17,7 +17,7 @@ const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
 const LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push";
 const LINE_REPLY_URL = "https://api.line.me/v2/bot/message/reply";
 
-// LINE webhook: ユーザーがリンクを開いた時の userId 登録用
+// LINE webhook: userId 登録用
 app.post("/webhook", async (req, res) => {
   const events = req.body.events;
   if (!events || events.length === 0) return res.status(200).send("No events");
@@ -26,7 +26,7 @@ app.post("/webhook", async (req, res) => {
   const replyToken = event.replyToken;
   const userId = event.source.userId;
 
-  // userId を仮の最新チケットに紐付け（userIdがまだnullの最新チケット）
+  // userId 最新チケットに紐付け
   const lastTicket = ticketLog.slice().reverse().find(t => !t.userId);
   if (lastTicket) {
     lastTicket.userId = userId;
@@ -58,7 +58,7 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-// 🎫 整理券を発行する（userIdを受け取り保存）
+// 整理券を発行する
 app.post("/api/ticket", (req, res) => {
   const { userId } = req.body;
 
