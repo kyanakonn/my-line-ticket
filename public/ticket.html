@@ -28,7 +28,7 @@
   <div class="call-status">現在の呼び出し番号：<span id="current-number">--</span></div>
   <div class="timer" id="countdown"></div>
 
-  <!-- 🔐 秘密キー入力欄 -->
+  <!-- 秘密キー入力欄 -->
   <div class="secret">
     <input type="password" id="secret-input" placeholder="秘密キーを入力" />
     <button onclick="useSecret()">解除</button>
@@ -164,7 +164,7 @@
       }
     }
 
-    // ✅ 秘密キー解除ボタン
+    // 秘密キー解除ボタン
     function useSecret() {
       const input = secretInput.value.trim();
       if (input === SECRET_KEY) {
