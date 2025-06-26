@@ -1,38 +1,22 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2em;
-    }
-    .ticket {
-      font-size: 2em;
-      color: green;
-      margin-top: 1em;
-    }
-    .call-status {
-      font-size: 1.5em;
-      color: blue;
-      margin-top: 2em;
-    }
-    .disabled {
-      background-color: gray;
-      color: white;
-      cursor: not-allowed;
-    }
-    .timer {
-      font-size: 1.2em;
-      margin-top: 1em;
-      color: red;
-    }
-    button {
+    body { font-family: sans-serif; text-align: center; padding: 2em; }
+    .ticket { font-size: 2em; color: green; margin-top: 1em; }
+    .call-status { font-size: 1.5em; color: blue; margin-top: 2em; }
+    .disabled { background-color: gray; color: white; cursor: not-allowed; }
+    .timer { font-size: 1.2em; margin-top: 1em; color: red; }
+    .secret { margin-top: 2em; }
+    button { font-size: 1em; padding: 0.5em 1.2em; }
+    input[type="password"] {
       font-size: 1em;
-      padding: 0.5em 1.2em;
+      padding: 0.4em;
+      width: 200px;
+      text-align: center;
     }
   </style>
 </head>
@@ -41,39 +25,58 @@
 
   <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
   <div class="ticket" id="result">あなたの整理券は発行されていません。</div>
-
-  <div class="call-status">
-    現在の呼び出し番号：<span id="current-number">--</span>
-  </div>
+  <div class="call-status">現在の呼び出し番号：<span id="current-number">--</span></div>
   <div class="timer" id="countdown"></div>
 
+  <!-- 🔐 秘密キー入力欄 -->
+  <div class="secret">
+    <input type="password" id="secret-input" placeholder="秘密キーを入力" />
+    <button onclick="useSecret()">解除</button>
+    <p id="secret-status" style="color: green;"></p>
+  </div>
+
   <script>
-    const DISABLE_MINUTES = 30;
-    const DISABLE_MS = DISABLE_MINUTES * 60 * 1000;
+    const DISABLE_MS = 30 * 60 * 1000;
+    const SECRET_KEY = "VIP1212";
+
     const issueButton = document.getElementById("issue-button");
     const resultEl = document.getElementById("result");
     const numberEl = document.getElementById("current-number");
     const countdownEl = document.getElementById("countdown");
+    const secretInput = document.getElementById("secret-input");
+    const secretStatus = document.getElementById("secret-status");
 
     let userId = null;
     let countdownInterval = null;
 
     async function initializeLIFF() {
-      await liff.init({ liffId: "2007636118-xGZvpLJM" });
+      try {
+        await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
 
-      if (!liff.isLoggedIn()) {
-        liff.login({ redirectUri: window.location.href });
-        return; // 無限ループ防止！
+        if (!liff.isLoggedIn()) {
+          const hasRedirected = sessionStorage.getItem("liffRedirected");
+          if (!hasRedirected) {
+            sessionStorage.setItem("liffRedirected", "true");
+            liff.login({ redirectUri: location.href.split('?')[0] });
+            return;
+          } else {
+            resultEl.textContent = "ログインに失敗しました。LINEから開いてください。";
+            return;
+          }
+        }
+
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        issueButton.disabled = false;
+
+        restoreTicketNumber();
+        disableButtonForRemainingTime();
+        fetchCurrentNumber();
+        setInterval(fetchCurrentNumber, 3000);
+      } catch (error) {
+        console.error("LIFF初期化エラー:", error);
+        resultEl.textContent = "LIFFの初期化に失敗しました。";
       }
-
-      const profile = await liff.getProfile();
-      userId = profile.userId;
-      issueButton.disabled = false;
-
-      restoreTicketNumber();
-      disableButtonForRemainingTime();
-      fetchCurrentNumber();
-      setInterval(fetchCurrentNumber, 3000);
     }
 
     async function getTicket() {
@@ -101,6 +104,7 @@
         localStorage.setItem("lastIssuedAt", Date.now());
 
         disableButtonForRemainingTime();
+        secretStatus.textContent = ""; // 成功後の解除メッセージを消す
       } catch (err) {
         resultEl.textContent = "整理券の発行に失敗しました。";
         console.error(err);
@@ -108,10 +112,7 @@
     }
 
     function disableButtonForRemainingTime() {
-      const lastIssued = getLastIssuedTime();
-      const now = Date.now();
-      const timeLeft = DISABLE_MS - (now - lastIssued);
-
+      const timeLeft = DISABLE_MS - (Date.now() - getLastIssuedTime());
       if (timeLeft > 0) {
         issueButton.disabled = true;
         issueButton.classList.add("disabled");
@@ -139,21 +140,18 @@
     }
 
     function updateCountdown(ms) {
-      const minutes = Math.floor(ms / 60000);
-      const seconds = Math.floor((ms % 60000) / 1000);
-      countdownEl.textContent = `あと ${minutes}分 ${seconds}秒 後に再発行できます`;
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      countdownEl.textContent = `あと ${m}分 ${s}秒 後に再発行できます`;
     }
 
     function restoreTicketNumber() {
       const saved = localStorage.getItem("ticketNumber");
-      if (saved) {
-        resultEl.textContent = `あなたの整理券番号は ${saved} 番です`;
-      }
+      if (saved) resultEl.textContent = `あなたの整理券番号は ${saved} 番です`;
     }
 
     function getLastIssuedTime() {
-      const ts = localStorage.getItem("lastIssuedAt");
-      return ts ? parseInt(ts) : 0;
+      return parseInt(localStorage.getItem("lastIssuedAt") || "0");
     }
 
     async function fetchCurrentNumber() {
@@ -163,6 +161,21 @@
         numberEl.textContent = data.number;
       } catch (err) {
         numberEl.textContent = "取得失敗";
+      }
+    }
+
+    // ✅ 秘密キー解除ボタン
+    function useSecret() {
+      const input = secretInput.value.trim();
+      if (input === SECRET_KEY) {
+        localStorage.setItem("lastIssuedAt", 0);
+        issueButton.disabled = false;
+        issueButton.classList.remove("disabled");
+        countdownEl.textContent = "";
+        clearInterval(countdownInterval);
+        secretStatus.textContent = "制限を解除しました。すぐに発行できます！";
+      } else {
+        secretStatus.textContent = "秘密キーが違います。";
       }
     }
 
