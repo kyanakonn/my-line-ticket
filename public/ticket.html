@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <!-- フォント -->
   <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
   <style>
     body {
@@ -22,13 +21,11 @@
 
     .ticket {
       font-size: 2em;
-      color: red;
       margin-top: 1em;
     }
 
     .call-status {
       font-size: 1.5em;
-      color: red;
       margin-top: 2em;
     }
 
@@ -77,9 +74,57 @@
     #secret-status {
       color: crimson;
     }
+
+    /* 注意事項モーダル */
+    #notice-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      color: red;
+      z-index: 9999;
+      text-align: center;
+      padding-top: 80px;
+    }
+
+    #notice-content {
+      background: #111;
+      padding: 2em;
+      margin: auto;
+      width: 80%;
+      max-width: 500px;
+      border: 2px solid red;
+      border-radius: 10px;
+    }
+
+    label {
+      display: inline-block;
+      margin-top: 1em;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.2);
+      margin-right: 0.4em;
+    }
   </style>
 </head>
 <body>
+  <!-- 注意事項モーダル -->
+  <div id="notice-modal">
+    <div id="notice-content">
+      <h2>⚠️ 整理券発行する上での注意事項 ⚠️</h2>
+      <p style="line-height: 1.8;">
+        ・一組につき一枚発行してください。<br>
+        ・お客様の整理券番号を呼び出した時に受付にいない場合は次の方の番号をお呼びする場合があります。<br>
+        ・番号が近くなりましたら通知をお送りいたしますのでLINEの通知はオンにしてください。<br>
+        ・順番が来たら速やかに対応をお願いします。
+      </p>
+      <label><input type="checkbox" id="dont-show-again"> 次回から表示しない</label><br>
+      <button onclick="closeNotice()">わかりました！</button>
+    </div>
+  </div>
+
+  <!-- 本体 -->
   <h1>整理券発行ページ</h1>
 
   <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
@@ -106,6 +151,25 @@
 
     let userId = null;
     let countdownInterval = null;
+
+    // 最初に実行される処理
+    window.addEventListener("DOMContentLoaded", () => {
+      const hideNotice = localStorage.getItem("hideNotice") === "true";
+      if (hideNotice) {
+        initializeLIFF();
+      } else {
+        document.getElementById("notice-modal").style.display = "block";
+      }
+    });
+
+    function closeNotice() {
+      const dontShow = document.getElementById("dont-show-again").checked;
+      if (dontShow) {
+        localStorage.setItem("hideNotice", "true");
+      }
+      document.getElementById("notice-modal").style.display = "none";
+      initializeLIFF();
+    }
 
     async function initializeLIFF() {
       try {
@@ -235,8 +299,6 @@
         secretStatus.textContent = "秘密キーが違います。";
       }
     }
-
-    window.addEventListener("DOMContentLoaded", initializeLIFF);
   </script>
 </body>
 </html>
