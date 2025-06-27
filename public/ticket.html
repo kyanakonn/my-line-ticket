@@ -75,7 +75,7 @@
       color: crimson;
     }
 
-    /* 注意事項*/
+    /* 注意事項モーダル */
     #notice-modal {
       display: none;
       position: fixed;
@@ -106,6 +106,23 @@
       transform: scale(1.2);
       margin-right: 0.4em;
     }
+
+    #show-notice-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 0.9em;
+      padding: 0.5em 1em;
+      background-color: crimson;
+      color: black;
+      border-radius: 8px;
+      border: 2px solid red;
+      z-index: 100;
+    }
+
+    #show-notice-button:hover {
+      background-color: darkred;
+    }
   </style>
 </head>
 <body>
@@ -123,6 +140,9 @@
       <button onclick="closeNotice()">わかりました！</button>
     </div>
   </div>
+
+  <!-- 注意事項再表示ボタン -->
+  <button id="show-notice-button" onclick="showNotice()">📌 注意事項を見る</button>
 
   <!-- 本体 -->
   <h1>整理券発行ページ</h1>
@@ -152,7 +172,7 @@
     let userId = null;
     let countdownInterval = null;
 
-    // 最初に実行される処理
+    // 発行ページでの注意事項確認
     window.addEventListener("DOMContentLoaded", () => {
       const hideNotice = localStorage.getItem("hideNotice") === "true";
       if (hideNotice) {
@@ -169,6 +189,10 @@
       }
       document.getElementById("notice-modal").style.display = "none";
       initializeLIFF();
+    }
+
+    function showNotice() {
+      document.getElementById("notice-modal").style.display = "block";
     }
 
     async function initializeLIFF() {
