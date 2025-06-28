@@ -2,10 +2,10 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet" />
   <style>
     body {
       font-family: 'Creepster', cursive;
@@ -87,7 +87,8 @@
       color: crimson;
     }
 
-    #notice-modal {
+    /* モーダルの共通スタイル */
+    .modal {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -95,11 +96,10 @@
       color: red;
       z-index: 9999;
       text-align: center;
-      padding-top: 80px;
+      padding-top: 60px;
       overflow-y: auto;
     }
-
-    #notice-content {
+    .modal-content {
       background: #111;
       padding: 2em;
       margin: auto;
@@ -107,6 +107,7 @@
       max-width: 500px;
       border: 2px solid red;
       border-radius: 10px;
+      line-height: 1.6;
     }
 
     label {
@@ -138,23 +139,35 @@
   </style>
 </head>
 <body>
-  <!-- 注意事項 -->
-  <div id="notice-modal">
-    <div id="notice-content">
+  <!-- 注意事項モーダル -->
+  <div id="notice-modal" class="modal">
+    <div class="modal-content" id="notice-step1">
       <h2>⚠️ 注意事項 ⚠️</h2>
-      <p style="line-height: 1.8;">
-        ・一組につき一枚発行してください。<br>
-        ・呼び出された時に受付にいない場合、次の番号を呼ぶことがあります。<br>
-        ・間に合わなかった場合は受付で対応します。<br>
+      <p>
+        ・一組につき一枚発行してください。<br />
+        ・呼び出された時に受付にいない場合、次の番号を呼ぶことがあります。<br />
+        ・間に合わなかった場合は受付で対応します。<br />
         ・発行後に整理券番号が表示されているか確認してください。
       </p>
-      <label><input type="checkbox" id="dont-show-again"> 次回から表示しない</label><br>
-      <button onclick="closeNotice()">わかりました！</button>
+      <label><input type="checkbox" id="dont-show-again" /> 次回から表示しない</label><br />
+      <button onclick="showNextNotice()">わかりました！</button>
+    </div>
+
+    <div class="modal-content" id="notice-step2" style="display:none;">
+      <h2>📢 初めて整理券を発行する方へ</h2>
+      <p>
+        次に表示される画面で「許可する」を押していただけると、<br />
+        順番が近づいたときに私たちからLINEでメッセージを送ることができます。<br />
+        許可することで順番の見逃しを防ぐことができます！
+      </p>
+      <button onclick="closeNotice()">わかった！</button>
     </div>
   </div>
 
-  <button id="show-notice-button" onclick="showNotice()">再度注意事項を見る</button>
+  <!-- 注意事項再表示ボタン -->
+  <button id="show-notice-button" onclick="openNotice()">初回の方へを再度見る</button>
 
+  <!-- 本体 -->
   <h1>整理券発行</h1>
 
   <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
@@ -175,12 +188,17 @@
     const SECRET_KEY = "VIP1212";
 
     const issueButton = document.getElementById("issue-button");
-    const ticketNumEl = document.getElementById("ticket-number");
     const resultEl = document.getElementById("result");
+    const ticketNumEl = document.getElementById("ticket-number");
     const numberEl = document.getElementById("current-number");
     const countdownEl = document.getElementById("countdown");
     const secretInput = document.getElementById("secret-input");
     const secretStatus = document.getElementById("secret-status");
+
+    const noticeModal = document.getElementById("notice-modal");
+    const noticeStep1 = document.getElementById("notice-step1");
+    const noticeStep2 = document.getElementById("notice-step2");
+    const dontShowAgainCheckbox = document.getElementById("dont-show-again");
 
     let userId = null;
     let countdownInterval = null;
@@ -191,30 +209,45 @@
       if (hideNotice) {
         initializeLIFF();
       } else {
-        document.getElementById("notice-modal").style.display = "block";
+        openNotice();
       }
     });
 
-    function closeNotice() {
-      const dontShow = document.getElementById("dont-show-again").checked;
-      if (dontShow) {
+    function showNextNotice() {
+      if (dontShowAgainCheckbox.checked) {
         localStorage.setItem("hideNotice", "true");
       }
-      document.getElementById("notice-modal").style.display = "none";
+      noticeStep1.style.display = "none";
+      noticeStep2.style.display = "block";
+    }
+
+    function closeNotice() {
+      noticeModal.style.display = "none";
       initializeLIFF();
     }
 
-    function showNotice() {
-      document.getElementById("notice-modal").style.display = "block";
+    function openNotice() {
+      noticeStep1.style.display = "block";
+      noticeStep2.style.display = "none";
+      noticeModal.style.display = "block";
     }
 
     async function initializeLIFF() {
       try {
         await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
+
         if (!liff.isLoggedIn()) {
-          liff.login({ redirectUri: location.href.split('?')[0] });
-          return;
+          const hasRedirected = sessionStorage.getItem("liffRedirected");
+          if (!hasRedirected) {
+            sessionStorage.setItem("liffRedirected", "true");
+            liff.login({ redirectUri: location.href.split("?")[0] });
+            return;
+          } else {
+            resultEl.textContent = "ログインに失敗しました。LINEから開いてください。";
+            return;
+          }
         }
+
         const profile = await liff.getProfile();
         userId = profile.userId;
         issueButton.disabled = false;
@@ -223,7 +256,8 @@
         disableButtonForRemainingTime();
         fetchCurrentNumber();
         setInterval(fetchCurrentNumber, 3000);
-      } catch (err) {
+      } catch (error) {
+        console.error("LIFF初期化エラー:", error);
         resultEl.textContent = "LIFFの初期化に失敗しました。";
       }
     }
@@ -237,22 +271,27 @@
         const res = await fetch("/api/ticket", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId })
+          body: JSON.stringify({ userId }),
         });
+
         const data = await res.json();
         const ticketNumber = data.number;
+
         ticketNumEl.textContent = `${ticketNumber} 番`;
         localStorage.setItem("ticketNumber", ticketNumber);
+
         disableButtonForRemainingTime();
         secretStatus.textContent = "";
       } catch (err) {
         resultEl.textContent = "整理券の発行に失敗しました。受付までお越しください。";
+        console.error(err);
       }
     }
 
     function disableButtonForRemainingTime() {
       const timeBase = overrideTime || parseInt(localStorage.getItem("lastIssuedAt") || "0");
       const timeLeft = DISABLE_MS - (Date.now() - timeBase);
+
       if (timeLeft > 0) {
         issueButton.disabled = true;
         issueButton.classList.add("disabled");
@@ -267,8 +306,8 @@
     }
 
     function startCountdown(ms) {
-      clearInterval(countdownInterval);
       updateCountdown(ms);
+      clearInterval(countdownInterval);
       countdownInterval = setInterval(() => {
         ms -= 1000;
         if (ms <= 0) {
