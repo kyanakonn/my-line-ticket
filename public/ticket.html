@@ -2,9 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
   <style>
     body {
@@ -12,7 +12,7 @@
       background-color: black;
       color: red;
       text-align: center;
-      padding: 2em 1em;
+      padding: 2em;
       margin: 0;
     }
 
@@ -22,16 +22,14 @@
     }
 
     .ticket {
-      font-size: 1.2em;
+      font-size: 1.5em;
       margin-top: 1em;
-      line-height: 1.5;
     }
 
     .ticket-number {
       display: block;
       font-size: 2em;
       font-weight: bold;
-      color: crimson;
       margin-top: 0.5em;
     }
 
@@ -58,7 +56,7 @@
 
     button {
       font-size: 1em;
-      padding: 0.6em 1.2em;
+      padding: 0.5em 1.2em;
       background-color: red;
       color: black;
       border: none;
@@ -76,7 +74,7 @@
       font-size: 1em;
       padding: 0.4em;
       width: 80%;
-      max-width: 250px;
+      max-width: 200px;
       text-align: center;
       border: 2px solid red;
       background-color: black;
@@ -95,29 +93,19 @@
       color: red;
       z-index: 9999;
       text-align: center;
-      padding: 5% 5%;
-      overflow-y: auto;
+      padding-top: 80px;
     }
 
     #notice-content {
       background: #111;
-      padding: 1.5em;
+      padding: 2em;
       margin: auto;
-      width: 95%;
+      width: 90%;
       max-width: 500px;
       border: 2px solid red;
       border-radius: 10px;
-      box-sizing: border-box;
-    }
-
-    #notice-content h2 {
-      font-size: 1.4em;
-      margin-bottom: 1em;
-    }
-
-    #notice-content p {
-      font-size: 1em;
-      line-height: 1.6;
+      font-size: 1.1em;
+      font-weight: bold;
     }
 
     label {
@@ -149,10 +137,11 @@
   </style>
 </head>
 <body>
+  <!-- 注意事項 -->
   <div id="notice-modal">
     <div id="notice-content">
-      <h2>⚠️ 注意事項 ⚠️</h2>
-      <p>
+      <h2>⚠️ 整理券発行する上での注意事項 ⚠️</h2>
+      <p style="line-height: 1.8;">
         ・一組につき一枚発行してください。<br>
         ・お客様の整理券番号を呼び出した時に受付にいない場合は次の方の番号をお呼びする場合があります。<br>
         ・番号が近くなりましたら通知を送りますのでLINEの通知はオンにしてください。<br>
@@ -250,7 +239,7 @@
       const timeLeft = DISABLE_MS - (now - lastIssued);
 
       if (timeLeft > 0) {
-        resultEl.innerHTML = "30分以内のため発行できません。";
+        resultEl.textContent = "30分以内のため発行できません。";
         return;
       }
 
@@ -277,6 +266,7 @@
     }
 
     function disableButtonForRemainingTime() {
+      clearInterval(countdownInterval);
       const timeLeft = DISABLE_MS - (Date.now() - getLastIssuedTime());
       if (timeLeft > 0) {
         issueButton.disabled = true;
@@ -286,8 +276,9 @@
           issueButton.disabled = false;
           issueButton.classList.remove("disabled");
           countdownEl.textContent = "";
-          clearInterval(countdownInterval);
         }, timeLeft);
+      } else {
+        countdownEl.textContent = "";
       }
     }
 
@@ -337,9 +328,9 @@
         issueButton.classList.remove("disabled");
         countdownEl.textContent = "";
         clearInterval(countdownInterval);
-        secretStatus.textContent = "制限を解除しました。受付の指示に従ってください。";
+        secretStatus.textContent = "制限を解除しました。すぐに発行できます！";
       } else {
-        secretStatus.textContent = "秘密キーは受付でのみ発行できます。";
+        secretStatus.textContent = "秘密キーが違います。";
       }
       secretInput.value = "";
     }
