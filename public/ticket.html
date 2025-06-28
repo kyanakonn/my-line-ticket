@@ -337,9 +337,9 @@
         issueButton.classList.remove("disabled");
         countdownEl.textContent = "";
         clearInterval(countdownInterval);
-        secretStatus.textContent = "制限を解除しました。すぐに発行できます！";
+        secretStatus.textContent = "制限を解除しました。受付の指示に従ってください。";
       } else {
-        secretStatus.textContent = "秘密キーが違います。";
+        secretStatus.textContent = "秘密キーは受付でのみ発行できます。";
       }
       secretInput.value = "";
     }
