@@ -87,7 +87,7 @@
       color: crimson;
     }
 
-    #notice-modal {
+    .modal {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -99,7 +99,7 @@
       overflow-y: auto;
     }
 
-    #notice-content {
+    .modal-content {
       background: #111;
       padding: 2em;
       margin: auto;
@@ -139,34 +139,44 @@
 </head>
 <body>
   <!-- 注意事項 -->
-  <div id="notice-modal">
-    <div id="notice-content">
+  <div id="notice-modal" class="modal">
+    <div class="modal-content">
       <h2>⚠️ 注意事項 ⚠️</h2>
       <p style="line-height: 1.8;">
-        ・一組につき一枚発行してください。<br>
-        ・お客様の整理券番号を呼び出した時に受付にいない場合は次の方の番号をお呼びする場合があります。<br>
-        ・初めての方は「わかりました」を押したら次の画面で「許可する」を押してくださると私たちからLINEでお知らせを送ることができます。<br>
-        ・もし呼び出しに間に合わなかった場合は受付まできてくだされば対応いたします。<br>
-        ・整理券発行ボタンを押して自分の整理券が正しく発行されていることを必ず確認してください。
-      </p>
+       <p style="line-height: 1.8; text-align: left; padding-left: 1em;">
+  ・一組につき一枚発行してください。<br>
+  ・呼び出された時に受付にいない場合、次の番号を呼ぶことがあります。<br>
+  ・間に合わなかった場合は受付で対応します。<br>
+  ・発行後に整理券番号が表示されているか確認してください。
+</p>
       <label><input type="checkbox" id="dont-show-again"> 次回から表示しない</label><br>
       <button onclick="closeNotice()">わかりました！</button>
     </div>
   </div>
 
-  <!-- 注意事項再表示ボタン -->
+  <!-- 初めての方へ -->
+  <div id="first-time-modal" class="modal">
+    <div class="modal-content">
+      <h2>初めて整理券を発行する方へ</h2>
+      <p style="line-height: 1.8;">
+        次に表示される画面で「許可する」を押していただけると、順番が近づいたときにLINEでメッセージを送ることができ、<br>
+        順番の見逃しを防ぐことができます！
+      </p>
+      <button onclick="closeFirstTimeGuide()">わかった！</button>
+    </div>
+  </div>
+
+  <!-- 再表示ボタン -->
   <button id="show-notice-button" onclick="showNotice()">再度注意事項を見る</button>
 
-  <!-- 本体 -->
+  <!-- メイン画面 -->
   <h1>整理券発行</h1>
-
-  <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
+  <button id="issue-button" disabled>整理券を発行する</button>
   <div class="ticket" id="result">
     あなたの整理券番号は <span class="ticket-number" id="ticket-number"></span>
   </div>
   <div class="call-status">現在呼び出し中の番号：<span id="current-number">--</span></div>
   <div class="timer" id="countdown"></div>
-
   <div class="secret">
     <input type="password" id="secret-input" placeholder="秘密キーを入力" />
     <button onclick="useSecret()">解除</button>
@@ -185,25 +195,38 @@
     const secretInput = document.getElementById("secret-input");
     const secretStatus = document.getElementById("secret-status");
 
-    let userId = null;
     let countdownInterval = null;
-    let overrideTime = null;
+    let userId = null;
 
     window.addEventListener("DOMContentLoaded", () => {
       const hideNotice = localStorage.getItem("hideNotice") === "true";
-      if (hideNotice) {
-        initializeLIFF();
-      } else {
+      const seenFirstGuide = localStorage.getItem("seenFirstGuide") === "true";
+
+      if (!hideNotice) {
         document.getElementById("notice-modal").style.display = "block";
+      } else if (!seenFirstGuide) {
+        document.getElementById("first-time-modal").style.display = "block";
+      } else {
+        initializeLIFF();
       }
     });
 
     function closeNotice() {
       const dontShow = document.getElementById("dont-show-again").checked;
-      if (dontShow) {
-        localStorage.setItem("hideNotice", "true");
-      }
+      if (dontShow) localStorage.setItem("hideNotice", "true");
       document.getElementById("notice-modal").style.display = "none";
+
+      const seenFirstGuide = localStorage.getItem("seenFirstGuide") === "true";
+      if (!seenFirstGuide) {
+        document.getElementById("first-time-modal").style.display = "block";
+      } else {
+        initializeLIFF();
+      }
+    }
+
+    function closeFirstTimeGuide() {
+      localStorage.setItem("seenFirstGuide", "true");
+      document.getElementById("first-time-modal").style.display = "none";
       initializeLIFF();
     }
 
@@ -214,99 +237,19 @@
     async function initializeLIFF() {
       try {
         await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
-
         if (!liff.isLoggedIn()) {
-          const hasRedirected = sessionStorage.getItem("liffRedirected");
-          if (!hasRedirected) {
-            sessionStorage.setItem("liffRedirected", "true");
-            liff.login({ redirectUri: location.href.split('?')[0] });
-            return;
-          } else {
-            resultEl.textContent = "ログインに失敗しました。LINEから開いてください。";
-            return;
-          }
+          liff.login({ redirectUri: location.href.split('?')[0] });
+          return;
         }
-
         const profile = await liff.getProfile();
         userId = profile.userId;
         issueButton.disabled = false;
 
-        restoreTicketNumber();
-        disableButtonForRemainingTime();
         fetchCurrentNumber();
         setInterval(fetchCurrentNumber, 3000);
-      } catch (error) {
-        console.error("LIFF初期化エラー:", error);
+      } catch (e) {
         resultEl.textContent = "LIFFの初期化に失敗しました。";
       }
-    }
-
-    async function getTicket() {
-      const lastIssued = Date.now();
-      localStorage.setItem("lastIssuedAt", lastIssued);
-      overrideTime = null;
-
-      try {
-        const res = await fetch("/api/ticket", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId })
-        });
-
-        const data = await res.json();
-        const ticketNumber = data.number;
-
-        ticketNumEl.textContent = `${ticketNumber} 番`;
-        localStorage.setItem("ticketNumber", ticketNumber);
-
-        disableButtonForRemainingTime();
-        secretStatus.textContent = "";
-      } catch (err) {
-        resultEl.textContent = "整理券の発行に失敗しました。受付までお越しください。";
-        console.error(err);
-      }
-    }
-
-    function disableButtonForRemainingTime() {
-      const timeBase = overrideTime || parseInt(localStorage.getItem("lastIssuedAt") || "0");
-      const timeLeft = DISABLE_MS - (Date.now() - timeBase);
-
-      if (timeLeft > 0) {
-        issueButton.disabled = true;
-        issueButton.classList.add("disabled");
-        startCountdown(timeLeft);
-        setTimeout(() => {
-          issueButton.disabled = false;
-          issueButton.classList.remove("disabled");
-          countdownEl.textContent = "";
-          clearInterval(countdownInterval);
-        }, timeLeft);
-      }
-    }
-
-    function startCountdown(ms) {
-      updateCountdown(ms);
-      clearInterval(countdownInterval);
-      countdownInterval = setInterval(() => {
-        ms -= 1000;
-        if (ms <= 0) {
-          clearInterval(countdownInterval);
-          countdownEl.textContent = "";
-        } else {
-          updateCountdown(ms);
-        }
-      }, 1000);
-    }
-
-    function updateCountdown(ms) {
-      const m = Math.floor(ms / 60000);
-      const s = Math.floor((ms % 60000) / 1000);
-      countdownEl.textContent = `あと ${m}分 ${s}秒 後に再発行できます`;
-    }
-
-    function restoreTicketNumber() {
-      const saved = localStorage.getItem("ticketNumber");
-      if (saved) ticketNumEl.textContent = `${saved} 番`;
     }
 
     async function fetchCurrentNumber() {
@@ -314,7 +257,7 @@
         const res = await fetch("/api/number");
         const data = await res.json();
         numberEl.textContent = data.number;
-      } catch (err) {
+      } catch {
         numberEl.textContent = "取得失敗";
       }
     }
@@ -322,15 +265,9 @@
     function useSecret() {
       const input = secretInput.value.trim();
       if (input === SECRET_KEY) {
-        overrideTime = Date.now();
-        localStorage.setItem("lastIssuedAt", overrideTime);
-        issueButton.disabled = false;
-        issueButton.classList.remove("disabled");
-        countdownEl.textContent = "";
-        clearInterval(countdownInterval);
-        secretStatus.textContent = "秘密キーを受理しました。受付の指示に従ってください。";
+        secretStatus.textContent = "秘密キーを受理しました。";
       } else {
-        secretStatus.textContent = "この秘密キーは時間の制限を解除するためにあります。受付でのみ発行できます。";
+        secretStatus.textContent = "秘密キーは時間の制限を解除するためにあります。解除したい場合は受付まで！";
       }
       secretInput.value = "";
     }
