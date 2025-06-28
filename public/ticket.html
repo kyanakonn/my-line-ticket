@@ -87,7 +87,7 @@
       color: crimson;
     }
 
-    /* モーダルの共通スタイル */
+    /* 共通スタイル */
     .modal {
       display: none;
       position: fixed;
@@ -139,7 +139,7 @@
   </style>
 </head>
 <body>
-  <!-- 注意事項モーダル -->
+  <!-- 注意事項 -->
   <div id="notice-modal" class="modal">
     <div class="modal-content" id="notice-step1">
       <h2>⚠️ 注意事項 ⚠️</h2>
@@ -154,7 +154,7 @@
     </div>
 
     <div class="modal-content" id="notice-step2" style="display:none;">
-      <h2>📢 初めて整理券を発行する方へ</h2>
+      <h2>初めて整理券を発行する方へ</h2>
       <p>
         次に表示される画面で「許可する」を押していただけると、<br />
         順番が近づいたときに私たちからLINEでメッセージを送ることができます。<br />
@@ -164,8 +164,8 @@
     </div>
   </div>
 
-  <!-- 注意事項再表示ボタン -->
-  <button id="show-notice-button" onclick="openNotice()">初回の方へを再度見る</button>
+  <!-- 注意事項等再表示ボタン -->
+  <button id="show-notice-button" onclick="openNotice()">注意事項から再度見る</button>
 
   <!-- 本体 -->
   <h1>整理券発行</h1>
