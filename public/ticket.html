@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
@@ -12,22 +11,30 @@
       background-color: black;
       color: red;
       text-align: center;
-      padding: 1em;
-      box-sizing: border-box;
+      padding: 2em;
+      margin: 0;
     }
 
     h1 {
       font-size: 2.5em;
-      margin-bottom: 0.5em;
+      margin-bottom: 1em;
     }
 
     .ticket {
-      font-size: 1.8em;
+      font-size: 1.5em;
       margin-top: 1em;
+      line-height: 1.8;
+    }
+
+    .ticket-number {
+      font-size: 2.5em;
+      font-weight: bold;
+      display: block;
+      margin-top: 0.3em;
     }
 
     .call-status {
-      font-size: 1.4em;
+      font-size: 1.2em;
       margin-top: 2em;
     }
 
@@ -38,7 +45,7 @@
     }
 
     .timer {
-      font-size: 1.1em;
+      font-size: 1em;
       margin-top: 1em;
       color: crimson;
     }
@@ -49,17 +56,14 @@
 
     button {
       font-size: 1em;
-      padding: 0.5em 1em;
+      padding: 0.5em 1.2em;
       background-color: red;
       color: black;
       border: none;
       border-radius: 5px;
-      margin: 0.5em auto;
+      margin: 0.5em;
       cursor: pointer;
       transition: background-color 0.3s;
-      display: block;
-      width: 90%;
-      max-width: 300px;
     }
 
     button:hover {
@@ -69,8 +73,7 @@
     input[type="password"] {
       font-size: 1em;
       padding: 0.4em;
-      width: 90%;
-      max-width: 300px;
+      width: 200px;
       text-align: center;
       border: 2px solid red;
       background-color: black;
@@ -89,20 +92,19 @@
       color: red;
       z-index: 9999;
       text-align: center;
-      padding-top: 50px;
+      padding-top: 60px;
     }
 
     #notice-content {
       background: #111;
-      padding: 1em;
+      padding: 2em;
       margin: auto;
       width: 90%;
-      max-width: 400px;
+      max-width: 500px;
       border: 2px solid red;
       border-radius: 10px;
       font-size: 1.1em;
       font-weight: bold;
-      line-height: 1.6;
     }
 
     label {
@@ -134,11 +136,10 @@
   </style>
 </head>
 <body>
-  <!-- 注意事項 -->
   <div id="notice-modal">
     <div id="notice-content">
       <h2>⚠️ 注意事項 ⚠️</h2>
-      <p>
+      <p style="line-height: 1.8;">
         ・一組につき一枚発行してください。<br>
         ・お客様の整理券番号を呼び出した時に受付にいない場合は次の方の番号をお呼びする場合があります。<br>
         ・番号が近くなりましたら通知を送りますのでLINEの通知はオンにしてください。<br>
@@ -149,10 +150,8 @@
     </div>
   </div>
 
-  <!-- 注意事項再表示ボタン -->
   <button id="show-notice-button" onclick="showNotice()">再度注意事項を見る</button>
 
-  <!-- 本体 -->
   <h1>整理券発行ページ</h1>
 
   <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
@@ -205,6 +204,7 @@
     async function initializeLIFF() {
       try {
         await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
+
         if (!liff.isLoggedIn()) {
           const hasRedirected = sessionStorage.getItem("liffRedirected");
           if (!hasRedirected) {
@@ -216,6 +216,7 @@
             return;
           }
         }
+
         const profile = await liff.getProfile();
         userId = profile.userId;
         issueButton.disabled = false;
@@ -234,19 +235,23 @@
       const lastIssued = getLastIssuedTime();
       const now = Date.now();
       const timeLeft = DISABLE_MS - (now - lastIssued);
+
       if (timeLeft > 0) {
         resultEl.textContent = "30分以内のため発行できません。";
         return;
       }
+
       try {
         const res = await fetch("/api/ticket", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId })
         });
+
         const data = await res.json();
         const ticketNumber = data.number;
-        resultEl.textContent = `あなたの整理券番号は ${ticketNumber} 番です`;
+
+        resultEl.innerHTML = `あなたの整理券番号は<br><span class="ticket-number">${ticketNumber} 番</span>`;
         localStorage.setItem("ticketNumber", ticketNumber);
         localStorage.setItem("lastIssuedAt", Date.now());
 
@@ -294,7 +299,7 @@
 
     function restoreTicketNumber() {
       const saved = localStorage.getItem("ticketNumber");
-      if (saved) resultEl.textContent = `あなたの整理券番号は ${saved} 番です`;
+      if (saved) resultEl.innerHTML = `あなたの整理券番号は<br><span class="ticket-number">${saved} 番</span>`;
     }
 
     function getLastIssuedTime() {
@@ -323,6 +328,7 @@
       } else {
         secretStatus.textContent = "秘密キーが違います。";
       }
+
       secretInput.value = "";
     }
   </script>
