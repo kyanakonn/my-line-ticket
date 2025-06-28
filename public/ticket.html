@@ -140,7 +140,7 @@
   <!-- 注意事項 -->
   <div id="notice-modal">
     <div id="notice-content">
-      <h2>⚠️ 整理券発行する上での注意事項 ⚠️</h2>
+      <h2>⚠️ 注意事項 ⚠️</h2>
       <p style="line-height: 1.8;">
         ・一組につき一枚発行してください。<br>
         ・お客様の整理券番号を呼び出した時に受付にいない場合は次の方の番号をお呼びする場合があります。<br>
@@ -328,9 +328,9 @@
         issueButton.classList.remove("disabled");
         countdownEl.textContent = "";
         clearInterval(countdownInterval);
-        secretStatus.textContent = "制限を解除しました。すぐに発行できます！";
+        secretStatus.textContent = "制限を解除しました。受付の指示に従ってください。";
       } else {
-        secretStatus.textContent = "秘密キーが違います。";
+        secretStatus.textContent = "秘密キーは受付でのみ発行できます。";
       }
       secretInput.value = "";
     }
