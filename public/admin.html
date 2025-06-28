@@ -18,6 +18,7 @@
       padding: 0.6em 1.5em;
       margin: 0.5em;
       font-size: 1em;
+      cursor: pointer;
     }
     input[type="number"], input[type="password"], textarea {
       font-size: 1.2em;
@@ -47,6 +48,25 @@
     }
     #auth-screen {
       margin-top: 5em;
+    }
+    /* リセットボタンのデザイン調整 */
+    #reset-button {
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      margin-top: 3em;
+      padding: 0.8em 2em;
+      transition: background-color 0.3s ease;
+    }
+    #reset-button:hover {
+      background-color: #c9302c;
+    }
+    #reset-message {
+      margin-top: 1em;
+      font-weight: bold;
+      color: darkred;
     }
   </style>
 </head>
@@ -105,6 +125,10 @@
       </thead>
       <tbody id="log-table-body"></tbody>
     </table>
+
+    <!-- ここにリセットボタン追加 -->
+    <button id="reset-button" onclick="resetAll()">すべてリセット</button>
+    <p id="reset-message"></p>
   </div>
 
   <script>
@@ -124,42 +148,58 @@
     }
 
     async function refreshAll() {
-      const numberRes = await fetch("/api/number");
-      const ticketRes = await fetch("/api/ticket/last");
-      const logRes = await fetch("/api/ticket/log");
+      try {
+        const numberRes = await fetch("/api/number");
+        const ticketRes = await fetch("/api/ticket/last");
+        const logRes = await fetch("/api/ticket/log");
 
-      const numberData = await numberRes.json();
-      const ticketData = await ticketRes.json();
-      const logData = await logRes.json();
+        if (!numberRes.ok || !ticketRes.ok || !logRes.ok) {
+          throw new Error("API通信に失敗しました");
+        }
 
-      document.getElementById("current-number").textContent = numberData.number;
-      document.getElementById("last-ticket-number").textContent = ticketData.last;
-      document.getElementById("total-issued").textContent = logData.length;
+        const numberData = await numberRes.json();
+        const ticketData = await ticketRes.json();
+        const logData = await logRes.json();
 
-      const tbody = document.getElementById("log-table-body");
-      tbody.innerHTML = "";
+        document.getElementById("current-number").textContent = numberData.number;
+        document.getElementById("last-ticket-number").textContent = ticketData.last;
+        document.getElementById("total-issued").textContent = logData.length;
 
-      logData.slice().reverse().forEach(item => {
-        const row = document.createElement("tr");
-        const tdNumber = document.createElement("td");
-        const tdTime = document.createElement("td");
-        tdNumber.textContent = item.number;
-        tdTime.textContent = new Date(item.timestamp).toLocaleString();
-        row.appendChild(tdNumber);
-        row.appendChild(tdTime);
-        tbody.appendChild(row);
-      });
+        const tbody = document.getElementById("log-table-body");
+        tbody.innerHTML = "";
+
+        logData.slice().reverse().forEach(item => {
+          const row = document.createElement("tr");
+          const tdNumber = document.createElement("td");
+          const tdTime = document.createElement("td");
+          tdNumber.textContent = item.number;
+          tdTime.textContent = new Date(item.timestamp).toLocaleString();
+          row.appendChild(tdNumber);
+          row.appendChild(tdTime);
+          tbody.appendChild(row);
+        });
+
+        // リセットメッセージはリフレッシュ時は消す
+        document.getElementById("reset-message").textContent = "";
+      } catch (error) {
+        console.error(error);
+        document.getElementById("message").textContent = "データの取得に失敗しました。";
+      }
     }
 
     async function changeNumber(diff) {
-      const res = await fetch("/api/call", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ diff: diff })
-      });
-      const data = await res.json();
-      document.getElementById("message").textContent = data.message;
-      refreshAll();
+      try {
+        const res = await fetch("/api/call", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ diff: diff })
+        });
+        const data = await res.json();
+        document.getElementById("message").textContent = data.message || "";
+        refreshAll();
+      } catch {
+        document.getElementById("message").textContent = "番号変更に失敗しました。";
+      }
     }
 
     async function setNumber() {
@@ -169,15 +209,18 @@
         document.getElementById("message").textContent = "有効な番号を入力してください。";
         return;
       }
-
-      const res = await fetch("/api/set", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number: num })
-      });
-      const data = await res.json();
-      document.getElementById("message").textContent = data.message;
-      refreshAll();
+      try {
+        const res = await fetch("/api/set", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ number: num })
+        });
+        const data = await res.json();
+        document.getElementById("message").textContent = data.message || "";
+        refreshAll();
+      } catch {
+        document.getElementById("message").textContent = "番号設定に失敗しました。";
+      }
     }
 
     async function sendNotification() {
@@ -205,6 +248,29 @@
         notifyEl.textContent = data.message || "通知を送信しました。";
       } catch (err) {
         notifyEl.textContent = "通知送信中にエラーが発生しました。";
+        console.error(err);
+      }
+    }
+
+    // リセット機能
+    async function resetAll() {
+      if (!confirm("本当にすべての整理券番号と記録をリセットしますか？")) {
+        return;
+      }
+      try {
+        const res = await fetch("/api/reset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById("reset-message").textContent = "リセットに成功しました。";
+          refreshAll();
+        } else {
+          document.getElementById("reset-message").textContent = data.message || "リセットに失敗しました。";
+        }
+      } catch (err) {
+        document.getElementById("reset-message").textContent = "リセット処理中にエラーが発生しました。";
         console.error(err);
       }
     }
