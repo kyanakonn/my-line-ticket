@@ -144,6 +144,15 @@ app.post("/api/notify", async (req, res) => {
   }
 });
 
+// 管理者用リセットAPI：呼び出し番号・整理券番号・ログをリセットする
+app.post("/api/reset", (req, res) => {
+  currentNumber = 0;
+  currentTicket = 1;
+  ticketLog = [];
+  res.json({ message: "呼び出し番号と整理券番号、発行ログをリセットしました。" });
+});
+// 追加部分
+
 // トップページリダイレクト
 app.get("/", (req, res) => {
   res.redirect("/ticket.html");
