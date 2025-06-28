@@ -95,6 +95,8 @@
       max-width: 500px;
       border: 2px solid red;
       border-radius: 10px;
+      font-size: 1.3em;
+      font-weight: bold;
     }
 
     label {
@@ -172,7 +174,6 @@
     let userId = null;
     let countdownInterval = null;
 
-    // 発行ページでの注意事項確認
     window.addEventListener("DOMContentLoaded", () => {
       const hideNotice = localStorage.getItem("hideNotice") === "true";
       if (hideNotice) {
@@ -322,8 +323,6 @@
       } else {
         secretStatus.textContent = "秘密キーが違います。";
       }
-
-      // 入力欄をクリア
       secretInput.value = "";
     }
   </script>
