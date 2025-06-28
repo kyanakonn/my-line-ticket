@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
@@ -55,6 +56,7 @@
       margin: 0.5em;
       cursor: pointer;
       transition: background-color 0.3s;
+      font-weight: bold;
     }
 
     button:hover {
@@ -69,10 +71,12 @@
       border: 2px solid red;
       background-color: black;
       color: red;
+      font-weight: bold;
     }
 
     #secret-status {
       color: crimson;
+      font-weight: bold;
     }
 
     /* 注意事項モーダル */
@@ -95,13 +99,15 @@
       max-width: 500px;
       border: 2px solid red;
       border-radius: 10px;
-      font-size: 1.3em;
       font-weight: bold;
+      font-size: 1.2em;
+      line-height: 1.8;
     }
 
     label {
       display: inline-block;
       margin-top: 1em;
+      font-size: 1em;
     }
 
     input[type="checkbox"] {
@@ -120,10 +126,52 @@
       border-radius: 8px;
       border: 2px solid red;
       z-index: 100;
+      font-weight: bold;
     }
 
     #show-notice-button:hover {
       background-color: darkred;
+    }
+
+    /* スマホ版フォント */
+    @media (max-width: 600px) {
+      body {
+        font-size: 16px;
+        padding: 1em;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+
+      .ticket, .call-status {
+        font-size: 1.5em;
+      }
+
+      .timer {
+        font-size: 1em;
+      }
+
+      #notice-content {
+        width: 90%;
+        font-size: 1.1em;
+      }
+
+      button {
+        font-size: 1em;
+        padding: 0.6em 1em;
+      }
+
+      input[type="password"] {
+        width: 100%;
+        max-width: 280px;
+      }
+
+      #show-notice-button {
+        bottom: 15px;
+        right: 15px;
+        font-size: 0.8em;
+      }
     }
   </style>
 </head>
@@ -132,7 +180,7 @@
   <div id="notice-modal">
     <div id="notice-content">
       <h2>⚠️ 整理券発行する上での注意事項 ⚠️</h2>
-      <p style="line-height: 1.8;">
+      <p>
         ・一組につき一枚発行してください。<br>
         ・お客様の整理券番号を呼び出した時に受付にいない場合は次の方の番号をお呼びする場合があります。<br>
         ・番号が近くなりましたら通知を送りますのでLINEの通知はオンにしてください。<br>
@@ -148,7 +196,6 @@
 
   <!-- 本体 -->
   <h1>整理券発行ページ</h1>
-
   <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
   <div class="ticket" id="result">あなたの整理券は発行されていません。</div>
   <div class="call-status">現在呼び出し中の番号：<span id="current-number">--</span></div>
@@ -323,6 +370,7 @@
       } else {
         secretStatus.textContent = "秘密キーが違います。";
       }
+
       secretInput.value = "";
     }
   </script>
