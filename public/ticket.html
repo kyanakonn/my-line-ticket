@@ -21,47 +21,26 @@
     .ticket { font-size: 1.5em; margin-top: 1em; line-height: 1.6; }
     .ticket-number { font-size: 2.4em; font-weight: bold; display: block; margin-top: 0.3em; }
     .call-status { font-size: 1.3em; margin-top: 2em; }
+    .disabled { background-color: darkred; color: black; cursor: not-allowed; }
     .timer { font-size: 1.2em; margin-top: 1em; color: crimson; }
     .secret { margin-top: 2em; }
-    button { font-size: 1em; padding: 0.5em 1.2em; background-color: red; color: black; border:none; border-radius:5px; margin:0.5em; cursor:pointer; transition:0.3s; }
+    button {
+      font-size: 1em; padding: 0.5em 1.2em;
+      background-color: red; color: black;
+      border: none; border-radius: 5px;
+      margin: 0.5em; cursor: pointer;
+      transition: background-color 0.3s;
+    }
     button:hover { background-color: darkred; }
-    input[type=password] { font-size:1em; padding:0.4em; width:200px; text-align:center; border:2px solid red; background-color:black; color:red;}
+    input[type="password"] {
+      font-size: 1em; padding: 0.4em; width: 200px;
+      text-align: center; border: 2px solid red;
+      background-color: black; color: red;
+    }
     #secret-status { color: crimson; }
-    .modal { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.95); color:red; z-index:9999; text-align:center; padding-top:80px; overflow-y:auto; }
-    .modal-content { background:#111; padding:2em; margin:auto; width:90%;max-width:500px; border:2px solid red; border-radius:10px; }
-    label { display:inline-block; margin-top:1em; }
-    input[type=checkbox] { transform:scale(1.2); margin-right:0.4em; }
-    #show-notice-button { position:fixed; bottom:20px; right:20px; font-size:0.9em; padding:0.5em 1em; background-color:crimson; color:black; border-radius:8px; border:2px solid red; z-index:100; }
-    #show-notice-button:hover { background-color:darkred; }
   </style>
 </head>
 <body>
-  <div id="notice-modal" class="modal">
-    <div class="modal-content">
-      <h2>⚠️ 注意事項 ⚠️</h2>
-      <p style="line-height:1.8; text-align:left; padding-left:1em;">
-        ・一組につき一枚発行してください。<br>
-        ・呼び出された時に受付にいない場合、次の番号を呼ぶことがあります。<br>
-        ・間に合わなかった場合は受付で対応します。<br>
-        ・発行後に整理券番号が表示されているか確認してください。
-      </p>
-      <label><input type="checkbox" id="dont-show-again"> 次回から表示しない</label><br>
-      <button onclick="closeNotice()">わかりました！</button>
-    </div>
-  </div>
-
-  <div id="first-time-modal" class="modal">
-    <div class="modal-content">
-      <h2>初めて整理券を発行する方へ</h2>
-      <p style="line-height:1.8; text-align:left; padding-left:1em;">
-        次に表示される画面で「許可する」を押していただけると、順番が近づいたときにLINEでメッセージを送ることができ、順番の見逃しを防ぐことができます！
-      </p>
-      <button onclick="closeFirstTimeGuide()">わかった！</button>
-    </div>
-  </div>
-
-  <button id="show-notice-button" onclick="showNotice()">再度注意事項を見る</button>
-
   <h1>整理券発行</h1>
   <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
   <div class="ticket" id="result">あなたの整理券番号は <span class="ticket-number" id="ticket-number"></span></div>
@@ -72,81 +51,51 @@
     <button onclick="useSecret()">解除</button>
     <p id="secret-status"></p>
   </div>
-
   <script>
     const DISABLE_MS = 30 * 60 * 1000;
     const SECRET_KEY = "VIP1212";
     const issueButton = document.getElementById("issue-button");
+    const resultEl = document.getElementById("result");
     const ticketNumEl = document.getElementById("ticket-number");
     const numberEl = document.getElementById("current-number");
+    const countdownEl = document.getElementById("countdown");
     const secretInput = document.getElementById("secret-input");
     const secretStatus = document.getElementById("secret-status");
-    let countdownInterval = null;
+
     let userId = null;
+    let countdownInterval = null;
 
     window.addEventListener("DOMContentLoaded", () => {
-      const hideNotice = localStorage.getItem("hideNotice") === "true";
-      const seenFirst = localStorage.getItem("seenFirstGuide") === "true";
-      if (!hideNotice) {
-        document.getElementById("notice-modal").style.display = "block";
-      } else if (!seenFirst) {
-        document.getElementById("first-time-modal").style.display = "block";
-      } else {
-        initializeLIFF();
-      }
-    });
-
-    function closeNotice() {
-      if (document.getElementById("dont-show-again").checked) {
-        localStorage.setItem("hideNotice", "true");
-      }
-      document.getElementById("notice-modal").style.display = "none";
-      if (!localStorage.getItem("seenFirstGuide")) {
-        document.getElementById("first-time-modal").style.display = "block";
-      } else {
-        initializeLIFF();
-      }
-    }
-
-    function closeFirstTimeGuide() {
-      localStorage.setItem("seenFirstGuide", "true");
-      document.getElementById("first-time-modal").style.display = "none";
       initializeLIFF();
-    }
-
-    function showNotice() {
-      document.getElementById("notice-modal").style.display = "block";
-    }
+    });
 
     async function initializeLIFF() {
       try {
         await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
         if (!liff.isLoggedIn()) {
-          await liff.login({ redirectUri: location.href.split('?')[0] });
+          liff.login({ redirectUri: location.href });
           return;
         }
         const profile = await liff.getProfile();
         userId = profile.userId;
         issueButton.disabled = false;
+        restoreTicketNumber();
+        disableButtonForRemainingTime();
         fetchCurrentNumber();
         setInterval(fetchCurrentNumber, 3000);
-      } catch (e) {
-        document.getElementById("result").textContent = "LIFFの初期化に失敗しました。";
-      }
-    }
-
-    async function fetchCurrentNumber() {
-      try {
-        const res = await fetch("/api/number");
-        const { number } = await res.json();
-        numberEl.textContent = number;
-      } catch {
-        numberEl.textContent = "取得失敗";
+      } catch (error) {
+        resultEl.textContent = "LIFFの初期化に失敗しました。";
       }
     }
 
     async function getTicket() {
-      issueButton.disabled = true;
+      const now = Date.now();
+      const lastIssued = parseInt(localStorage.getItem("lastIssuedAt") || "0");
+      const timeLeft = DISABLE_MS - (now - lastIssued);
+      if (timeLeft > 0) {
+        resultEl.textContent = "30分以内のため整理券は再発行できません。";
+        return;
+      }
       try {
         const res = await fetch("/api/ticket", {
           method: "POST",
@@ -154,23 +103,78 @@
           body: JSON.stringify({ userId })
         });
         const data = await res.json();
-        if (data.number !== undefined) {
-          ticketNumEl.textContent = `${data.number} 番`;
+        const ticketNumber = data.number;
+        ticketNumEl.textContent = `${ticketNumber} 番`;
+        localStorage.setItem("ticketNumber", ticketNumber);
+        localStorage.setItem("lastIssuedAt", now);
+        disableButtonForRemainingTime();
+        secretStatus.textContent = "";
+      } catch (err) {
+        resultEl.textContent = "整理券の発行に失敗しました。";
+      }
+    }
+
+    function disableButtonForRemainingTime() {
+      const lastIssued = parseInt(localStorage.getItem("lastIssuedAt") || "0");
+      const timeLeft = DISABLE_MS - (Date.now() - lastIssued);
+      if (timeLeft > 0) {
+        issueButton.disabled = true;
+        issueButton.classList.add("disabled");
+        startCountdown(timeLeft);
+        setTimeout(() => {
+          issueButton.disabled = false;
+          issueButton.classList.remove("disabled");
+          countdownEl.textContent = "";
+          clearInterval(countdownInterval);
+        }, timeLeft);
+      }
+    }
+
+    function startCountdown(ms) {
+      updateCountdown(ms);
+      countdownInterval = setInterval(() => {
+        ms -= 1000;
+        if (ms <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = "";
         } else {
-          ticketNumEl.textContent = "取得失敗";
+          updateCountdown(ms);
         }
-      } catch (e) {
-        ticketNumEl.textContent = "発行失敗";
-      } finally {
-        issueButton.disabled = false;
+      }, 1000);
+    }
+
+    function updateCountdown(ms) {
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      countdownEl.textContent = `あと ${m}分 ${s}秒 後に再発行できます`;
+    }
+
+    function restoreTicketNumber() {
+      const saved = localStorage.getItem("ticketNumber");
+      if (saved) ticketNumEl.textContent = `${saved} 番`;
+    }
+
+    async function fetchCurrentNumber() {
+      try {
+        const res = await fetch("/api/number");
+        const data = await res.json();
+        numberEl.textContent = data.number;
+      } catch {
+        numberEl.textContent = "取得失敗";
       }
     }
 
     function useSecret() {
-      if (secretInput.value.trim() === SECRET_KEY) {
-        secretStatus.textContent = "秘密キーで制限を解除しました。";
+      const input = secretInput.value.trim();
+      if (input === SECRET_KEY) {
+        localStorage.setItem("lastIssuedAt", 0);
+        issueButton.disabled = false;
+        issueButton.classList.remove("disabled");
+        countdownEl.textContent = "";
+        clearInterval(countdownInterval);
+        secretStatus.textContent = "秘密キーが受理されました。";
       } else {
-        secretStatus.textContent = "秘密キーは時間制限を解除するためにあります。受付のみで解除できます。";
+        secretStatus.textContent = "秘密キーが違います。";
       }
       secretInput.value = "";
     }
