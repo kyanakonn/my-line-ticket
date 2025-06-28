@@ -17,164 +17,54 @@
       overflow-x: hidden;
       word-break: break-word;
     }
-
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 1em;
-    }
-
-    .ticket {
-      font-size: 1.5em;
-      margin-top: 1em;
-      line-height: 1.6;
-    }
-
-    .ticket-number {
-      font-size: 2.4em;
-      font-weight: bold;
-      display: block;
-      margin-top: 0.3em;
-    }
-
-    .call-status {
-      font-size: 1.3em;
-      margin-top: 2em;
-    }
-
-    .disabled {
-      background-color: darkred;
-      color: black;
-      cursor: not-allowed;
-    }
-
-    .timer {
-      font-size: 1.2em;
-      margin-top: 1em;
-      color: crimson;
-    }
-
-    .secret {
-      margin-top: 2em;
-    }
-
-    button {
-      font-size: 1em;
-      padding: 0.5em 1.2em;
-      background-color: red;
-      color: black;
-      border: none;
-      border-radius: 5px;
-      margin: 0.5em;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: darkred;
-    }
-
-    input[type="password"] {
-      font-size: 1em;
-      padding: 0.4em;
-      width: 200px;
-      text-align: center;
-      border: 2px solid red;
-      background-color: black;
-      color: red;
-    }
-
-    #secret-status {
-      color: crimson;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.95);
-      color: red;
-      z-index: 9999;
-      text-align: center;
-      padding-top: 80px;
-      overflow-y: auto;
-    }
-
-    .modal-content {
-      background: #111;
-      padding: 2em;
-      margin: auto;
-      width: 90%;
-      max-width: 500px;
-      border: 2px solid red;
-      border-radius: 10px;
-    }
-
-    label {
-      display: inline-block;
-      margin-top: 1em;
-    }
-
-    input[type="checkbox"] {
-      transform: scale(1.2);
-      margin-right: 0.4em;
-    }
-
-    #show-notice-button {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      font-size: 0.9em;
-      padding: 0.5em 1em;
-      background-color: crimson;
-      color: black;
-      border-radius: 8px;
-      border: 2px solid red;
-      z-index: 100;
-    }
-
-    #show-notice-button:hover {
-      background-color: darkred;
-    }
+    h1 { font-size: 2.5em; margin-bottom: 1em; }
+    .ticket { font-size: 1.5em; margin-top: 1em; line-height: 1.6; }
+    .ticket-number { font-size: 2.4em; font-weight: bold; display: block; margin-top: 0.3em; }
+    .call-status { font-size: 1.3em; margin-top: 2em; }
+    .timer { font-size: 1.2em; margin-top: 1em; color: crimson; }
+    .secret { margin-top: 2em; }
+    button { font-size: 1em; padding: 0.5em 1.2em; background-color: red; color: black; border:none; border-radius:5px; margin:0.5em; cursor:pointer; transition:0.3s; }
+    button:hover { background-color: darkred; }
+    input[type=password] { font-size:1em; padding:0.4em; width:200px; text-align:center; border:2px solid red; background-color:black; color:red;}
+    #secret-status { color: crimson; }
+    .modal { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.95); color:red; z-index:9999; text-align:center; padding-top:80px; overflow-y:auto; }
+    .modal-content { background:#111; padding:2em; margin:auto; width:90%;max-width:500px; border:2px solid red; border-radius:10px; }
+    label { display:inline-block; margin-top:1em; }
+    input[type=checkbox] { transform:scale(1.2); margin-right:0.4em; }
+    #show-notice-button { position:fixed; bottom:20px; right:20px; font-size:0.9em; padding:0.5em 1em; background-color:crimson; color:black; border-radius:8px; border:2px solid red; z-index:100; }
+    #show-notice-button:hover { background-color:darkred; }
   </style>
 </head>
 <body>
-  <!-- 注意事項 -->
   <div id="notice-modal" class="modal">
     <div class="modal-content">
       <h2>⚠️ 注意事項 ⚠️</h2>
-      <p style="line-height: 1.8;">
-       <p style="line-height: 1.8; text-align: left; padding-left: 1em;">
-  ・一組につき一枚発行してください。<br>
-  ・呼び出された時に受付にいない場合、次の番号を呼ぶことがあります。<br>
-  ・間に合わなかった場合は受付で対応します。<br>
-  ・発行後に整理券番号が表示されているか確認してください。
-</p>
+      <p style="line-height:1.8; text-align:left; padding-left:1em;">
+        ・一組につき一枚発行してください。<br>
+        ・呼び出された時に受付にいない場合、次の番号を呼ぶことがあります。<br>
+        ・間に合わなかった場合は受付で対応します。<br>
+        ・発行後に整理券番号が表示されているか確認してください。
+      </p>
       <label><input type="checkbox" id="dont-show-again"> 次回から表示しない</label><br>
       <button onclick="closeNotice()">わかりました！</button>
     </div>
   </div>
 
-  <!-- 初めての方へ -->
   <div id="first-time-modal" class="modal">
     <div class="modal-content">
       <h2>初めて整理券を発行する方へ</h2>
-      <p style="line-height: 1.8;">
-        次に表示される画面で「許可する」を押していただけると、順番が近づいたときにLINEでメッセージを送ることができ、<br>
-        順番の見逃しを防ぐことができます！
+      <p style="line-height:1.8; text-align:left; padding-left:1em;">
+        次に表示される画面で「許可する」を押していただけると、順番が近づいたときにLINEでメッセージを送ることができ、順番の見逃しを防ぐことができます！
       </p>
       <button onclick="closeFirstTimeGuide()">わかった！</button>
     </div>
   </div>
 
-  <!-- 再表示ボタン -->
   <button id="show-notice-button" onclick="showNotice()">再度注意事項を見る</button>
 
-  <!-- メイン画面 -->
   <h1>整理券発行</h1>
-  <button id="issue-button" disabled>整理券を発行する</button>
-  <div class="ticket" id="result">
-    あなたの整理券番号は <span class="ticket-number" id="ticket-number"></span>
-  </div>
+  <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
+  <div class="ticket" id="result">あなたの整理券番号は <span class="ticket-number" id="ticket-number"></span></div>
   <div class="call-status">現在呼び出し中の番号：<span id="current-number">--</span></div>
   <div class="timer" id="countdown"></div>
   <div class="secret">
@@ -186,25 +76,20 @@
   <script>
     const DISABLE_MS = 30 * 60 * 1000;
     const SECRET_KEY = "VIP1212";
-
     const issueButton = document.getElementById("issue-button");
-    const resultEl = document.getElementById("result");
     const ticketNumEl = document.getElementById("ticket-number");
     const numberEl = document.getElementById("current-number");
-    const countdownEl = document.getElementById("countdown");
     const secretInput = document.getElementById("secret-input");
     const secretStatus = document.getElementById("secret-status");
-
     let countdownInterval = null;
     let userId = null;
 
     window.addEventListener("DOMContentLoaded", () => {
       const hideNotice = localStorage.getItem("hideNotice") === "true";
-      const seenFirstGuide = localStorage.getItem("seenFirstGuide") === "true";
-
+      const seenFirst = localStorage.getItem("seenFirstGuide") === "true";
       if (!hideNotice) {
         document.getElementById("notice-modal").style.display = "block";
-      } else if (!seenFirstGuide) {
+      } else if (!seenFirst) {
         document.getElementById("first-time-modal").style.display = "block";
       } else {
         initializeLIFF();
@@ -212,12 +97,11 @@
     });
 
     function closeNotice() {
-      const dontShow = document.getElementById("dont-show-again").checked;
-      if (dontShow) localStorage.setItem("hideNotice", "true");
+      if (document.getElementById("dont-show-again").checked) {
+        localStorage.setItem("hideNotice", "true");
+      }
       document.getElementById("notice-modal").style.display = "none";
-
-      const seenFirstGuide = localStorage.getItem("seenFirstGuide") === "true";
-      if (!seenFirstGuide) {
+      if (!localStorage.getItem("seenFirstGuide")) {
         document.getElementById("first-time-modal").style.display = "block";
       } else {
         initializeLIFF();
@@ -238,36 +122,55 @@
       try {
         await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
         if (!liff.isLoggedIn()) {
-          liff.login({ redirectUri: location.href.split('?')[0] });
+          await liff.login({ redirectUri: location.href.split('?')[0] });
           return;
         }
         const profile = await liff.getProfile();
         userId = profile.userId;
         issueButton.disabled = false;
-
         fetchCurrentNumber();
         setInterval(fetchCurrentNumber, 3000);
       } catch (e) {
-        resultEl.textContent = "LIFFの初期化に失敗しました。";
+        document.getElementById("result").textContent = "LIFFの初期化に失敗しました。";
       }
     }
 
     async function fetchCurrentNumber() {
       try {
         const res = await fetch("/api/number");
-        const data = await res.json();
-        numberEl.textContent = data.number;
+        const { number } = await res.json();
+        numberEl.textContent = number;
       } catch {
         numberEl.textContent = "取得失敗";
       }
     }
 
+    async function getTicket() {
+      issueButton.disabled = true;
+      try {
+        const res = await fetch("/api/ticket", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId })
+        });
+        const data = await res.json();
+        if (data.number !== undefined) {
+          ticketNumEl.textContent = `${data.number} 番`;
+        } else {
+          ticketNumEl.textContent = "取得失敗";
+        }
+      } catch (e) {
+        ticketNumEl.textContent = "発行失敗";
+      } finally {
+        issueButton.disabled = false;
+      }
+    }
+
     function useSecret() {
-      const input = secretInput.value.trim();
-      if (input === SECRET_KEY) {
-        secretStatus.textContent = "秘密キーを受理しました。";
+      if (secretInput.value.trim() === SECRET_KEY) {
+        secretStatus.textContent = "秘密キーで制限を解除しました。";
       } else {
-        secretStatus.textContent = "秘密キーは時間の制限を解除するためにあります。解除したい場合は受付まで！";
+        secretStatus.textContent = "秘密キーは時間制限を解除するためにあります。受付のみで解除できます。";
       }
       secretInput.value = "";
     }
