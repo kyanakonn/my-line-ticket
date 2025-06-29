@@ -90,20 +90,20 @@
     let particles = [];
 
     function createBloodSplash(x, y) {
-      const particles = [];
-      const count = 50;
+      const splash = [];
+      const count = 40;
       for (let i = 0; i < count; i++) {
-        particles.push({
+        splash.push({
           x: x,
           y: y,
-          vx: (Math.random() - 0.5) * 12,
-          vy: (Math.random() - 1) * 12,
-          radius: Math.random() * 6 + 10, // 大きくする（10〜16px）
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 1) * 14,
+          radius: Math.random() * 14 + 18,  // 大きさ
           alpha: 1,
-          decay: 0.002 + Math.random() * 0.005 // ゆっくり消える（長く残る）
+          decay: 0.001 + Math.random() * 0.002 // 残る時間
         });
       }
-      return particles;
+      return splash;
     }
 
     function animate() {
@@ -113,12 +113,13 @@
       particles.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.25;
+        p.vy += 0.2;
         p.alpha -= p.decay;
+
         ctx.beginPath();
         const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-        gradient.addColorStop(0, `rgba(255, 30, 30, ${p.alpha})`);  // 明るい赤
-        gradient.addColorStop(1, `rgba(120, 0, 0, 0)`);             // 外側も少し赤め
+        gradient.addColorStop(0, `rgba(255, 80, 80, ${p.alpha})`);  // 赤
+        gradient.addColorStop(1, `rgba(180, 0, 0, 0)`);             // 外側
         ctx.fillStyle = gradient;
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -130,7 +131,6 @@
 
     function vibrateScreen(duration = 300, intensity = 10) {
       const start = performance.now();
-
       function shake() {
         const now = performance.now();
         if (now - start > duration) {
