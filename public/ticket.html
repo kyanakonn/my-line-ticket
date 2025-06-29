@@ -87,7 +87,6 @@
       color: crimson;
     }
 
-    /* 共通スタイル */
     .modal {
       display: none;
       position: fixed;
@@ -109,67 +108,18 @@
       border-radius: 10px;
       line-height: 1.6;
     }
-
-    label {
-      display: inline-block;
-      margin-top: 1em;
-    }
-
-    input[type="checkbox"] {
-      transform: scale(1.2);
-      margin-right: 0.4em;
-    }
-
-    #show-notice-button {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      font-size: 0.9em;
-      padding: 0.5em 1em;
-      background-color: crimson;
-      color: black;
-      border-radius: 8px;
-      border: 2px solid red;
-      z-index: 100;
-    }
-
-    #show-notice-button:hover {
-      background-color: darkred;
-    }
   </style>
 </head>
 <body>
-  <!-- 注意事項 -->
-  <div id="notice-modal" class="modal">
-    <div class="modal-content" id="notice-step1">
-      <h2>⚠️ 注意事項 ⚠️</h2>
-      <p>
-        ・一組につき一枚発行してください。<br />
-        ・呼び出された時に受付にいない場合、次の番号を呼ぶことがあります。<br />
-        ・間に合わなかった場合は受付で対応します。<br />
-        ・発行後に整理券番号が表示されているか確認してください。
-      </p>
-      <label><input type="checkbox" id="dont-show-again" /> 次回から表示しない</label><br />
-      <button onclick="showNextNotice()">わかりました！</button>
-    </div>
-
-    <div class="modal-content" id="notice-step2" style="display:none;">
-      <h2>初めて整理券を発行する方へ</h2>
-      <p>
-        次に表示される画面で「許可する」を押していただけると、<br />
-        順番が近づいたときに私たちからLINEでメッセージを送ることができ、<br />
-        順番の見逃しを防ぐことができますので是非！
-      </p>
-      <button onclick="closeNotice()">わかった！</button>
+  <div id="closed-modal" class="modal">
+    <div class="modal-content">
+      <h2>本日の新規整理券の発行は終了しました</h2>
+      <p>引き続きすでに整理券を発行していただいた方には整理券を発行すること以外の機能はご利用いただけます。</p>
+      <button onclick="closeClosedModal()">わかりました</button>
     </div>
   </div>
 
-  <!-- 注意事項等再表示ボタン -->
-  <button id="show-notice-button" onclick="openNotice()">注意事項から再度見る</button>
-
-  <!-- 本体 -->
   <h1>整理券発行</h1>
-
   <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
   <div class="ticket" id="result">
     あなたの整理券番号は <span class="ticket-number" id="ticket-number"></span>
@@ -186,6 +136,10 @@
   <script>
     const DISABLE_MS = 60 * 60 * 1000;
     const SECRET_KEY = "VIP1212";
+    let userId = null;
+    let countdownInterval = null;
+    let overrideTime = null;
+    let isClosed = false;
 
     const issueButton = document.getElementById("issue-button");
     const resultEl = document.getElementById("result");
@@ -194,42 +148,35 @@
     const countdownEl = document.getElementById("countdown");
     const secretInput = document.getElementById("secret-input");
     const secretStatus = document.getElementById("secret-status");
-
-    const noticeModal = document.getElementById("notice-modal");
-    const noticeStep1 = document.getElementById("notice-step1");
-    const noticeStep2 = document.getElementById("notice-step2");
-    const dontShowAgainCheckbox = document.getElementById("dont-show-again");
-
-    let userId = null;
-    let countdownInterval = null;
-    let overrideTime = null;
+    const closedModal = document.getElementById("closed-modal");
 
     window.addEventListener("DOMContentLoaded", () => {
-      const hideNotice = localStorage.getItem("hideNotice") === "true";
-      if (hideNotice) {
-        initializeLIFF();
-      } else {
-        openNotice();
-      }
+      checkClosed();
     });
 
-    function showNextNotice() {
-      if (dontShowAgainCheckbox.checked) {
-        localStorage.setItem("hideNotice", "true");
+    async function checkClosed() {
+      try {
+        const res = await fetch("/api/closed");
+        const data = await res.json();
+        isClosed = data.closed;
+        if (isClosed) {
+          showClosedModal();
+        }
+        initializeLIFF();
+      } catch {
+        console.error("状態確認に失敗しました");
+        initializeLIFF();
       }
-      noticeStep1.style.display = "none";
-      noticeStep2.style.display = "block";
     }
 
-    function closeNotice() {
-      noticeModal.style.display = "none";
-      initializeLIFF();
+    function showClosedModal() {
+      closedModal.style.display = "block";
+      issueButton.disabled = true;
+      issueButton.classList.add("disabled");
     }
 
-    function openNotice() {
-      noticeStep1.style.display = "block";
-      noticeStep2.style.display = "none";
-      noticeModal.style.display = "block";
+    function closeClosedModal() {
+      closedModal.style.display = "none";
     }
 
     async function initializeLIFF() {
@@ -250,7 +197,6 @@
 
         const profile = await liff.getProfile();
         userId = profile.userId;
-        issueButton.disabled = false;
 
         restoreTicketNumber();
         disableButtonForRemainingTime();
@@ -263,6 +209,8 @@
     }
 
     async function getTicket() {
+      if (isClosed) return;
+
       const lastIssued = Date.now();
       localStorage.setItem("lastIssuedAt", lastIssued);
       overrideTime = null;
@@ -271,7 +219,7 @@
         const res = await fetch("/api/ticket", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
+          body: JSON.stringify({ userId })
         });
 
         const data = await res.json();
@@ -292,15 +240,17 @@
       const timeBase = overrideTime || parseInt(localStorage.getItem("lastIssuedAt") || "0");
       const timeLeft = DISABLE_MS - (Date.now() - timeBase);
 
-      if (timeLeft > 0) {
+      if (timeLeft > 0 || isClosed) {
         issueButton.disabled = true;
         issueButton.classList.add("disabled");
-        startCountdown(timeLeft);
+        if (!isClosed) startCountdown(timeLeft);
         setTimeout(() => {
-          issueButton.disabled = false;
-          issueButton.classList.remove("disabled");
-          countdownEl.textContent = "";
-          clearInterval(countdownInterval);
+          if (!isClosed) {
+            issueButton.disabled = false;
+            issueButton.classList.remove("disabled");
+            countdownEl.textContent = "";
+            clearInterval(countdownInterval);
+          }
         }, timeLeft);
       }
     }
@@ -345,8 +295,10 @@
       if (input === SECRET_KEY) {
         overrideTime = Date.now();
         localStorage.setItem("lastIssuedAt", overrideTime);
-        issueButton.disabled = false;
-        issueButton.classList.remove("disabled");
+        if (!isClosed) {
+          issueButton.disabled = false;
+          issueButton.classList.remove("disabled");
+        }
         countdownEl.textContent = "";
         clearInterval(countdownInterval);
         secretStatus.textContent = "秘密キーを受理しました。受付の指示に従ってください。";
