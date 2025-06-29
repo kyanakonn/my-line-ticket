@@ -1,140 +1,156 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>現在呼び出し中の番号</title>
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Rubik+Mono+One&display=swap" rel="stylesheet">
-  <style>
-    html {
-      font-size: 130%;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>現在呼び出し中の番号表示</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Impact&display=swap');
 
-    body {
-      background-color: black;
-      color: red;
-      font-family: 'Creepster', cursive;
-      text-align: center;
-      padding: 2em;
-      margin: 0;
-      overflow: hidden;
-      position: relative;
-      z-index: 0;
-    }
+  body {
+    margin: 0; padding: 0;
+    background-color: black;
+    color: red;
+    font-family: 'Impact', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
 
-    h1 {
-      font-size: 3em;
-      margin-bottom: 1em;
-    }
+  #number {
+    font-size: 15vw;
+    user-select: none;
+    text-shadow:
+      0 0 10px crimson,
+      0 0 20px crimson,
+      0 0 30px red,
+      0 0 40px darkred,
+      0 0 70px darkred;
+  }
 
-    .number-display {
-      font-family: 'Rubik Mono One', sans-serif;
-      font-size: 8em;
-      color: red;
-      margin: 0.5em 0;
-      z-index: 10;
-      position: relative;
-    }
-
-    .time {
-      margin-top: 1em;
-      font-size: 1.5em;
-      color: crimson;
-      font-family: sans-serif;
-    }
-
-    .blood-splash {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 400px;
-      height: 400px;
-      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWCAMAAADzJqf9AAAAGFBMVEUAAAD////39/fd3d3v7+/k5OTh4eHz8/PV1dXDJIbTAAABGElEQVR4nO3SQQ3DIAwE0Qjx//8UXWUGBmbU3Zh59R4DSqgUAgEAgEAgEAgEAgEAgEAgEAgEAgEAgEAgECgXYHdtxolrKluW0uNuUUs5qQl7zz9g5J0tb+P1k3Va5Zo1Xrtkq9j3z4cpUoF27Yt8ZL+O4KqUepUpWqVKlSpUqVKldrlZrtbH4cVWqVKlSpUqXqdyX2CnNeZrbPrwPrK3/vDUfN+AwEAgEAgEAgEAgEAgEAgEAgEAkF+CrQMLkATZADYAAAAASUVORK5CYII=') no-repeat center center;
-      background-size: contain;
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(1);
-      pointer-events: none;
-      z-index: 999999;
-      animation: splash 0.7s ease-out forwards;
-    }
-
-    @keyframes splash {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.3);
-      }
-      50% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.3);
-      }
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(1);
-      }
-    }
-
-    .shake {
-      animation: shake 0.5s;
-    }
-
-    @keyframes shake {
-      0% { transform: translate(0px, 0px); }
-      20% { transform: translate(-15px, 0px); }
-      40% { transform: translate(15px, 0px); }
-      60% { transform: translate(-15px, 0px); }
-      80% { transform: translate(15px, 0px); }
-      100% { transform: translate(0px, 0px); }
-    }
-  </style>
+  canvas#blood-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    width: 100vw;
+    height: 100vh;
+  }
+</style>
 </head>
 <body>
-  <h1>👻 呼び出し中の番号 👻</h1>
-  <div class="number-display" id="current-number">--</div>
-  <div class="time" id="time">読み込み中...</div>
 
-  <script>
-    let lastNumber = null;
+<div id="number">--</div>
+<canvas id="blood-canvas"></canvas>
 
-    async function fetchCurrentNumber() {
-      try {
-        const res = await fetch("/api/number");
-        const data = await res.json();
-        const newNumber = data.number;
+<script>
+  const numberEl = document.getElementById('number');
+  const canvas = document.getElementById('blood-canvas');
+  const ctx = canvas.getContext('2d');
 
-        if (newNumber !== lastNumber && lastNumber !== null) {
-          showBloodSplash();
-          triggerShake();
-        }
+  // サイズ設定
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
 
-        document.getElementById("current-number").textContent = newNumber;
-        lastNumber = newNumber;
+  let currentNumber = null;
 
-        const now = new Date();
-        document.getElementById("time").textContent =
-          `最終更新：${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-      } catch (error) {
-        document.getElementById("current-number").textContent = "取得失敗";
-        document.getElementById("time").textContent = "";
-        console.error("番号取得失敗:", error);
+  // 血しぶき
+  function createBloodSplash(x, y) {
+    const particles = [];
+    const count = 30;
+    for(let i=0; i<count; i++) {
+      particles.push({
+        x: x,
+        y: y,
+        vx: (Math.random() - 0.5) * 10,
+        vy: (Math.random() - 1) * 10,
+        radius: Math.random() * 6 + 4,
+        alpha: 1,
+        decay: 0.02 + Math.random() * 0.03
+      });
+    }
+    return particles;
+  }
+
+  let particles = [];
+
+  // ループ
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles = particles.filter(p => p.alpha > 0);
+
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.2; // gravity
+      p.alpha -= p.decay;
+      ctx.beginPath();
+      const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+      gradient.addColorStop(0, `rgba(220, 20, 60, ${p.alpha})`); // crimson
+      gradient.addColorStop(1, `rgba(139, 0, 0, 0)`);
+      ctx.fillStyle = gradient;
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // 画面振動（小刻みに左右上下ランダムに振動）
+  function vibrateScreen(duration = 300, intensity = 10) {
+    const start = performance.now();
+
+    function shake() {
+      const now = performance.now();
+      if (now - start > duration) {
+        document.body.style.transform = '';
+        return;
       }
+      const x = (Math.random() - 0.5) * intensity;
+      const y = (Math.random() - 0.5) * intensity;
+      document.body.style.transform = `translate(${x}px, ${y}px)`;
+      requestAnimationFrame(shake);
     }
+    shake();
+  }
 
-    function showBloodSplash() {
-      const splash = document.createElement("div");
-      splash.className = "blood-splash";
-      splash.addEventListener("animationend", () => splash.remove());
-      document.body.appendChild(splash);
+  // 呼び出し番号取得
+  async function fetchNumber() {
+    try {
+      const res = await fetch('/api/number');
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+
+      if (data.number !== currentNumber) {
+        currentNumber = data.number;
+        numberEl.textContent = currentNumber;
+
+        const rect = numberEl.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // 血しぶき生成
+        particles.push(...createBloodSplash(centerX, centerY));
+
+        // 画面振動
+        vibrateScreen();
+      }
+    } catch (e) {
+      numberEl.textContent = '取得失敗';
     }
+  }
 
-    function triggerShake() {
-      document.body.classList.add("shake");
-      setTimeout(() => {
-        document.body.classList.remove("shake");
-      }, 600);
-    }
+  fetchNumber();
+  setInterval(fetchNumber, 5000);
+</script>
 
-    fetchCurrentNumber();
-    setInterval(fetchCurrentNumber, 2000);
-  </script>
 </body>
 </html>
