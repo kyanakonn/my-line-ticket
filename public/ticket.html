@@ -69,7 +69,7 @@
       transition: background-color 0.3s;
     }
 
-    button:hover {
+    button:hover:not(.disabled) {
       background-color: darkred;
     }
 
@@ -111,10 +111,10 @@
   </style>
 </head>
 <body>
-  <div id="closed-modal" class="modal">
+  <div id="closed-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="closed-modal-title" aria-describedby="closed-modal-desc">
     <div class="modal-content">
-      <h2>本日の新規整理券の発行は終了しました</h2>
-      <p>引き続きすでに整理券を発行していただいた方には整理券を発行すること以外の機能はご利用いただけます。</p>
+      <h2 id="closed-modal-title">本日の新規整理券の発行は終了しました</h2>
+      <p id="closed-modal-desc">引き続きすでに整理券を発行していただいた方には整理券を発行すること以外の機能はご利用いただけます。</p>
       <button onclick="closeClosedModal()">わかりました</button>
     </div>
   </div>
@@ -151,33 +151,8 @@
     const closedModal = document.getElementById("closed-modal");
 
     window.addEventListener("DOMContentLoaded", () => {
-      checkClosed();
+      initializeLIFF();
     });
-
-    async function checkClosed() {
-      try {
-        const res = await fetch("/api/closed");
-        const data = await res.json();
-        isClosed = data.closed;
-        if (isClosed) {
-          showClosedModal();
-        }
-        initializeLIFF();
-      } catch {
-        console.error("状態確認に失敗しました");
-        initializeLIFF();
-      }
-    }
-
-    function showClosedModal() {
-      closedModal.style.display = "block";
-      issueButton.disabled = true;
-      issueButton.classList.add("disabled");
-    }
-
-    function closeClosedModal() {
-      closedModal.style.display = "none";
-    }
 
     async function initializeLIFF() {
       try {
@@ -198,6 +173,9 @@
         const profile = await liff.getProfile();
         userId = profile.userId;
 
+        // 発券停止状態を取得
+        await fetchTicketingStatus();
+
         restoreTicketNumber();
         disableButtonForRemainingTime();
         fetchCurrentNumber();
@@ -206,6 +184,41 @@
         console.error("LIFF初期化エラー:", error);
         resultEl.textContent = "LIFFの初期化に失敗しました。";
       }
+    }
+
+    async function fetchTicketingStatus() {
+      try {
+        const res = await fetch("/api/ticketing-status");
+        if (!res.ok) throw new Error("Failed to fetch status");
+        const data = await res.json();
+        isClosed = data.closed;
+
+        if (isClosed) {
+          showClosedModal();
+          issueButton.disabled = true;
+          issueButton.classList.add("disabled");
+        } else {
+          closeClosedModal();
+          // overrideTimeがなければ発券ボタン有効化（ただしDISABLE_MS制限は別途処理）
+          if (!overrideTime) {
+            issueButton.disabled = false;
+            issueButton.classList.remove("disabled");
+          }
+        }
+      } catch (e) {
+        console.error("受付状態取得エラー:", e);
+        // 失敗してもボタンはとりあえず有効にする（任意）
+        issueButton.disabled = false;
+        issueButton.classList.remove("disabled");
+      }
+    }
+
+    function showClosedModal() {
+      closedModal.style.display = "block";
+    }
+
+    function closeClosedModal() {
+      closedModal.style.display = "none";
     }
 
     async function getTicket() {
@@ -219,8 +232,14 @@
         const res = await fetch("/api/ticket", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId })
+          body: JSON.stringify({ userId }),
         });
+
+        if (!res.ok) {
+          const err = await res.json();
+          resultEl.textContent = err.message || "整理券の発行に失敗しました。受付までお越しください。";
+          return;
+        }
 
         const data = await res.json();
         const ticketNumber = data.number;
@@ -252,6 +271,9 @@
             clearInterval(countdownInterval);
           }
         }, timeLeft);
+      } else {
+        issueButton.disabled = false;
+        issueButton.classList.remove("disabled");
       }
     }
 
