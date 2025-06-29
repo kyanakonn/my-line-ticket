@@ -11,6 +11,7 @@ app.use(express.static("public"));
 let currentTicket = 1;
 let currentNumber = 0;
 let ticketLog = []; // 発行ログ（{ number, timestamp, userId }）
+let isTicketingClosed = false; // 整理券発行受付の状態を管理
 
 // LINE連携設定
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
@@ -60,6 +61,10 @@ app.post("/webhook", async (req, res) => {
 
 // 整理券を発行する
 app.post("/api/ticket", (req, res) => {
+  if (isTicketingClosed) {
+    return res.status(403).json({ message: "本日の新規整理券の発行は終了しました。" });
+  }
+
   const { userId } = req.body;
 
   const ticketNumber = currentTicket++;
@@ -105,7 +110,7 @@ app.get("/api/ticket/log", (req, res) => {
   res.json(ticketLog);
 });
 
-// 管理者が任意の整理券番号に通知を送る
+// 任意の整理券番号に通知を送る
 app.post("/api/notify", async (req, res) => {
   const { number, message } = req.body;
 
@@ -149,9 +154,20 @@ app.post("/api/reset", (req, res) => {
   currentNumber = 0;
   currentTicket = 1;
   ticketLog = [];
+  isTicketingClosed = false;
   res.json({ message: "呼び出し番号と整理券番号、発行ログをリセットしました。" });
 });
-// 追加部分
+
+// 整理券受付状態を取得する
+app.get("/api/ticketing-status", (req, res) => {
+  res.json({ closed: isTicketingClosed });
+});
+
+// 整理券受付を終了する（管理者操作）
+app.post("/api/close-ticketing", (req, res) => {
+  isTicketingClosed = true;
+  res.json({ message: "本日の新規整理券発行を終了しました。" });
+});
 
 // トップページリダイレクト
 app.get("/", (req, res) => {
