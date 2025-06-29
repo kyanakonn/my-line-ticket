@@ -42,7 +42,7 @@
       color: red;
     }
 
-    #closed-message {
+    #status-message {
       position: absolute;
       bottom: 30px;
       width: 100%;
@@ -53,7 +53,6 @@
       text-shadow:
         0 0 5px darkred,
         0 0 10px red;
-      display: none;
     }
 
     canvas#blood-canvas {
@@ -70,12 +69,12 @@
 
   <div id="header-text">👻現在呼び出し中の番号👻</div>
   <div id="number">--</div>
-  <div id="closed-message">本日の新規整理券の発行は終了しました</div>
+  <div id="status-message">読み込み中...</div>
   <canvas id="blood-canvas"></canvas>
 
   <script>
     const numberEl = document.getElementById('number');
-    const closedMessageEl = document.getElementById('closed-message');
+    const statusMessageEl = document.getElementById('status-message');
     const canvas = document.getElementById('blood-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -171,8 +170,13 @@
         const res = await fetch('/api/ticketing-status');
         if (!res.ok) throw new Error('status error');
         const data = await res.json();
-        closedMessageEl.style.display = data.closed ? 'block' : 'none';
+        if (data.closed) {
+          statusMessageEl.textContent = '本日の新規整理券の発行は終了しました';
+        } else {
+          statusMessageEl.textContent = '新規整理券の発行受付中！';
+        }
       } catch (err) {
+        statusMessageEl.textContent = '状態確認エラー';
         console.error("発行状態の取得に失敗しました");
       }
     }
