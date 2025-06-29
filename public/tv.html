@@ -98,9 +98,9 @@
           y: y,
           vx: (Math.random() - 0.5) * 12,
           vy: (Math.random() - 1) * 12,
-          radius: Math.random() * 8 + 6,
+          radius: Math.random() * 6 + 10, // 大きくする（10〜16px）
           alpha: 1,
-          decay: 0.005 + Math.random() * 0.01 // よりゆっくり消えるように変更
+          decay: 0.002 + Math.random() * 0.005 // ゆっくり消える（長く残る）
         });
       }
       return particles;
@@ -117,8 +117,8 @@
         p.alpha -= p.decay;
         ctx.beginPath();
         const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-        gradient.addColorStop(0, `rgba(255, 0, 0, ${p.alpha})`);
-        gradient.addColorStop(1, `rgba(100, 0, 0, 0)`);
+        gradient.addColorStop(0, `rgba(255, 30, 30, ${p.alpha})`);  // 明るい赤
+        gradient.addColorStop(1, `rgba(120, 0, 0, 0)`);             // 外側も少し赤め
         ctx.fillStyle = gradient;
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
