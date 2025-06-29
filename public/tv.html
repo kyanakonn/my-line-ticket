@@ -13,11 +13,25 @@
     color: red;
     font-family: 'Impact', sans-serif;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
     overflow: hidden;
     position: relative;
+  }
+
+  #header-text {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 3vw;
+    user-select: none;
+    text-shadow:
+      0 0 5px crimson,
+      0 0 10px crimson,
+      0 0 15px red;
   }
 
   #number {
@@ -43,6 +57,7 @@
 </head>
 <body>
 
+<div id="header-text">現在呼び出し中の番号</div>
 <div id="number">--</div>
 <canvas id="blood-canvas"></canvas>
 
@@ -81,7 +96,7 @@
 
   let particles = [];
 
-  // ループ
+  // アニメーションループ
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     particles = particles.filter(p => p.alpha > 0);
@@ -104,7 +119,7 @@
   }
   animate();
 
-  // 画面振動（小刻みに左右上下ランダムに振動）
+  // 画面振動
   function vibrateScreen(duration = 300, intensity = 10) {
     const start = performance.now();
 
@@ -122,7 +137,7 @@
     shake();
   }
 
-  // 呼び出し番号取得
+  // 呼び出し番号取得（5秒ごと）
   async function fetchNumber() {
     try {
       const res = await fetch('/api/number');
@@ -133,6 +148,7 @@
         currentNumber = data.number;
         numberEl.textContent = currentNumber;
 
+        // 血しぶきエフェクト
         const rect = numberEl.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
