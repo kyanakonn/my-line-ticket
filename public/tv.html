@@ -8,7 +8,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Impact&display=swap');
 
     body {
-      margin: 0; padding: 0;
+      margin: 0; padding: 0 0 40px 0;
       background-color: black;
       color: red;
       font-family: 'Impact', sans-serif;
@@ -16,9 +16,10 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-x: hidden;
       position: relative;
+      box-sizing: border-box;
     }
 
     #header-text {
