@@ -49,6 +49,7 @@
     #auth-screen {
       margin-top: 5em;
     }
+    /* リセットボタンのデザイン調整 */
     #reset-button {
       background-color: #d9534f;
       color: white;
@@ -70,6 +71,8 @@
   </style>
 </head>
 <body>
+
+  <!-- パスワード入力画面 -->
   <div id="auth-screen">
     <h2>管理者ページにアクセスするにはパスワードを入力してください</h2>
     <input type="password" id="password-input" placeholder="パスワード" />
@@ -77,17 +80,18 @@
     <p id="auth-message" style="color: red;"></p>
   </div>
 
+  <!-- 管理画面 -->
   <div id="admin-screen" style="display: none;">
     <h1>管理者用：呼び出し操作</h1>
 
     <div class="number-display">
-      現在の呼び出し番号：<span id="current-number">--</span>
+       現在の呼び出し番号：<span id="current-number">--</span>
     </div>
     <div class="number-display">
-      最後に発行された整理券番号：<span id="last-ticket-number">--</span>
+       最後に発行された整理券番号：<span id="last-ticket-number">--</span>
     </div>
     <div class="number-display">
-      発行人数の合計：<span id="total-issued">--</span>
+       発行人数の合計：<span id="total-issued">--</span>
     </div>
 
     <div>
@@ -105,9 +109,9 @@
 
     <h2>📩 任意の整理券番号に通知を送信</h2>
     <input type="number" id="notifyNumber" placeholder="整理券番号 (例: 23)" />
-    <br>
+    <br />
     <textarea id="notifyMessage" placeholder="通知メッセージを入力してください"></textarea>
-    <br>
+    <br />
     <button onclick="sendNotification()">通知を送信</button>
     <p id="notify-status" style="color: green;"></p>
 
@@ -122,10 +126,17 @@
       <tbody id="log-table-body"></tbody>
     </table>
 
-    <h2>整理券発行の受付停止</h2>
-    <button id="stop-button" onclick="stopIssuance()">本日の新規整理券の発行を終了する</button>
-    <p id="stop-message" style="color: darkred;"></p>
+    <!-- 新規整理券発行制御ボタン -->
+    <div style="margin-top: 2em;">
+      <button id="close-ticketing-button" onclick="closeTicketing()" style="background-color: #d9534f; color: white; font-weight: bold;">
+        本日の新規整理券発行を終了する
+      </button>
+      <button id="open-ticketing-button" onclick="openTicketing()" style="background-color: #5cb85c; color: white; font-weight: bold; margin-left: 1em;">
+        本日の新規整理券発行を再開する
+      </button>
+    </div>
 
+    <!-- リセットボタン -->
     <button id="reset-button" onclick="resetAll()">すべてリセット</button>
     <p id="reset-message"></p>
   </div>
@@ -151,12 +162,16 @@
         const numberRes = await fetch("/api/number");
         const ticketRes = await fetch("/api/ticket/last");
         const logRes = await fetch("/api/ticket/log");
+        const statusRes = await fetch("/api/ticketing-status");
 
-        if (!numberRes.ok || !ticketRes.ok || !logRes.ok) throw new Error("API通信に失敗しました");
+        if (!numberRes.ok || !ticketRes.ok || !logRes.ok || !statusRes.ok) {
+          throw new Error("API通信に失敗しました");
+        }
 
         const numberData = await numberRes.json();
         const ticketData = await ticketRes.json();
         const logData = await logRes.json();
+        const statusData = await statusRes.json();
 
         document.getElementById("current-number").textContent = numberData.number;
         document.getElementById("last-ticket-number").textContent = ticketData.last;
@@ -164,12 +179,23 @@
 
         const tbody = document.getElementById("log-table-body");
         tbody.innerHTML = "";
+
         logData.slice().reverse().forEach(item => {
           const row = document.createElement("tr");
-          row.innerHTML = `<td>${item.number}</td><td>${new Date(item.timestamp).toLocaleString()}</td>`;
+          const tdNumber = document.createElement("td");
+          const tdTime = document.createElement("td");
+          tdNumber.textContent = item.number;
+          tdTime.textContent = new Date(item.timestamp).toLocaleString();
+          row.appendChild(tdNumber);
+          row.appendChild(tdTime);
           tbody.appendChild(row);
         });
 
+        // 新規発行停止中ならボタンの無効化・有効化切り替え
+        document.getElementById("close-ticketing-button").disabled = statusData.closed;
+        document.getElementById("open-ticketing-button").disabled = !statusData.closed;
+
+        // リセットメッセージはリフレッシュ時は消す
         document.getElementById("reset-message").textContent = "";
       } catch (error) {
         console.error(error);
@@ -182,7 +208,7 @@
         const res = await fetch("/api/call", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ diff })
+          body: JSON.stringify({ diff: diff })
         });
         const data = await res.json();
         document.getElementById("message").textContent = data.message || "";
@@ -193,8 +219,9 @@
     }
 
     async function setNumber() {
-      const value = parseInt(document.getElementById("set-number").value);
-      if (isNaN(value) || value < 0) {
+      const value = document.getElementById("set-number").value;
+      const num = parseInt(value);
+      if (isNaN(num) || num < 0) {
         document.getElementById("message").textContent = "有効な番号を入力してください。";
         return;
       }
@@ -202,7 +229,7 @@
         const res = await fetch("/api/set", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ number: value })
+          body: JSON.stringify({ number: num })
         });
         const data = await res.json();
         document.getElementById("message").textContent = data.message || "";
@@ -221,7 +248,7 @@
         notifyEl.textContent = "有効な整理券番号を入力してください。";
         return;
       }
-      if (!message) {
+      if (message.length === 0) {
         notifyEl.textContent = "通知メッセージを入力してください。";
         return;
       }
@@ -232,6 +259,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ number, message })
         });
+
         const data = await res.json();
         notifyEl.textContent = data.message || "通知を送信しました。";
       } catch (err) {
@@ -240,33 +268,61 @@
       }
     }
 
-    async function stopIssuance() {
-      if (!confirm("本日の整理券発行受付を終了しますか？")) return;
-      try {
-        const res = await fetch("/api/stop", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        });
-        const data = await res.json();
-        document.getElementById("stop-message").textContent = data.message || "受付停止に成功しました。";
-      } catch (err) {
-        document.getElementById("stop-message").textContent = "受付停止処理中にエラーが発生しました。";
-        console.error(err);
-      }
-    }
-
+    // リセット機能
     async function resetAll() {
-      if (!confirm("本当にすべての整理券番号と記録をリセットしますか？")) return;
+      if (!confirm("本当にすべての整理券番号と記録をリセットしますか？")) {
+        return;
+      }
       try {
         const res = await fetch("/api/reset", {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         });
         const data = await res.json();
-        document.getElementById("reset-message").textContent = data.message || "リセットに成功しました。";
-        refreshAll();
+        if (res.ok) {
+          document.getElementById("reset-message").textContent = "リセットに成功しました。";
+          refreshAll();
+        } else {
+          document.getElementById("reset-message").textContent = data.message || "リセットに失敗しました。";
+        }
       } catch (err) {
         document.getElementById("reset-message").textContent = "リセット処理中にエラーが発生しました。";
+        console.error(err);
+      }
+    }
+
+    // 新規整理券発行を停止
+    async function closeTicketing() {
+      if (!confirm("本日の新規整理券発行を終了しますか？")) return;
+
+      try {
+        const res = await fetch("/api/close-ticketing", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        alert(data.message || "本日の新規整理券発行を終了しました。");
+        refreshAll();
+      } catch (err) {
+        alert("発行停止に失敗しました。");
+        console.error(err);
+      }
+    }
+
+    // 新規整理券発行を再開
+    async function openTicketing() {
+      if (!confirm("本日の新規整理券発行を再開しますか？")) return;
+
+      try {
+        const res = await fetch("/api/open-ticketing", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        alert(data.message || "本日の新規整理券発行を再開しました。");
+        refreshAll();
+      } catch (err) {
+        alert("発行再開に失敗しました。");
         console.error(err);
       }
     }
