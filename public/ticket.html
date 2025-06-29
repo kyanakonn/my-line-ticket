@@ -108,14 +108,83 @@
       border-radius: 10px;
       line-height: 1.6;
     }
+
+    /* 画面上部の再表示ボタン用スタイル */
+    #show-info-button {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: darkred;
+      color: black;
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9em;
+      z-index: 10000;
+    }
+    #show-info-button:hover {
+      background-color: red;
+    }
+
+    /* 注意事項のチェックボックス部分 */
+    #info-modal label {
+      display: block;
+      margin-top: 1em;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+    #info-modal input[type="checkbox"] {
+      margin-right: 0.5em;
+      vertical-align: middle;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <!-- 注意事項再表示ボタン -->
+  <button id="show-info-button" onclick="showInfoModal()">注意事項から再表示する</button>
+
+  <!-- 注意事項 -->
+  <div id="info-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title" aria-describedby="info-modal-desc">
+    <div class="modal-content">
+      <h2 id="info-modal-title">⚠️注意事項⚠️</h2>
+      <p id="info-modal-desc">
+        ・一組につき一枚整理券を発行してください。<br />
+        ・整理券番号は1番から順に割り当てられます。<br />
+        ・整理券の発行が上限に達した場合途中で新規整理券発行の受付を終了します。<br />
+        ・整理券は1時間に1枚まで発行できます。<br />
+        ・整理券発行後のキャンセルは受付までお越しください。<br />
+        ・ご不明点は受付までまでお問い合わせください。
+      </p>
+      <label>
+        <input type="checkbox" id="dont-show-info-checkbox" />
+        次回からこれを表示しない
+      </label>
+      <button onclick="closeInfoModal()">わかりました！</button>
+    </div>
+  </div>
+
+  <!-- 初めての方へ -->
+  <div id="first-time-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="first-time-modal-title" aria-describedby="first-time-modal-desc">
+    <div class="modal-content">
+      <h2 id="first-time-modal-title">初めて整理券を発行する方へ</h2>
+      <p id="first-time-modal-desc">
+        整理券を初めて発行する方向けの説明です。<br />
+        ・次に出てくる画面で許可するを押していただけるとLINEで私達からお知らせを送ることができます。<br />
+        ・お知らせでは番号が近くなったら通知でお知らせする機能があり、見逃しを防げます。<br />
+        ・操作がわからない場合は受付までお尋ねください。
+      </p>
+      <button onclick="closeFirstTimeModal()">わかりました！</button>
+    </div>
+  </div>
+
+  <!-- 発行停止 -->
   <div id="closed-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="closed-modal-title" aria-describedby="closed-modal-desc">
     <div class="modal-content">
       <h2 id="closed-modal-title">本日の新規整理券の発行は終了しました</h2>
-      <p id="closed-modal-desc">引き続きすでに整理券を発行していただいた方には整理券を発行すること以外の機能はご利用いただけます。</p>
-      <button onclick="closeClosedModal()">わかりました</button>
+      <p id="closed-modal-desc">引き続き「整理券を発行する」以外の機能はご利用いただけます。</p>
+      <button onclick="closeClosedModal()">わかったよ！</button>
     </div>
   </div>
 
@@ -149,9 +218,14 @@
     const secretInput = document.getElementById("secret-input");
     const secretStatus = document.getElementById("secret-status");
     const closedModal = document.getElementById("closed-modal");
+    const infoModal = document.getElementById("info-modal");
+    const firstTimeModal = document.getElementById("first-time-modal");
+    const showInfoButton = document.getElementById("show-info-button");
+    const dontShowInfoCheckbox = document.getElementById("dont-show-info-checkbox");
 
     window.addEventListener("DOMContentLoaded", () => {
       initializeLIFF();
+      checkAndShowModals();
     });
 
     async function initializeLIFF() {
@@ -199,7 +273,6 @@
           issueButton.classList.add("disabled");
         } else {
           closeClosedModal();
-          // overrideTimeがなければ発券ボタン有効化（ただしDISABLE_MS制限は別途処理）
           if (!overrideTime) {
             issueButton.disabled = false;
             issueButton.classList.remove("disabled");
@@ -207,7 +280,6 @@
         }
       } catch (e) {
         console.error("受付状態取得エラー:", e);
-        // 失敗してもボタンはとりあえず有効にする（任意）
         issueButton.disabled = false;
         issueButton.classList.remove("disabled");
       }
@@ -328,6 +400,43 @@
         secretStatus.textContent = "この秘密キーは時間の制限を解除するためにあります。受付でのみ解除できます。";
       }
       secretInput.value = "";
+    }
+
+    // 表示制御
+    function checkAndShowModals() {
+      // 注意事項の表示判定
+      const dontShowInfo = localStorage.getItem("dontShowInfo") === "true";
+      if (!dontShowInfo) {
+        showInfoModal();
+      }
+
+      // 初めての方へ表示（初回のみ）
+      const firstTimeDone = localStorage.getItem("firstTimeDone") === "true";
+      if (!firstTimeDone) {
+        showFirstTimeModal();
+      }
+    }
+
+    // 注意事項モーダル操作
+    function showInfoModal() {
+      infoModal.style.display = "block";
+      // チェック状態リセット
+      dontShowInfoCheckbox.checked = false;
+    }
+    function closeInfoModal() {
+      // チェックボックスの状態を保存
+      const dontShow = dontShowInfoCheckbox.checked;
+      localStorage.setItem("dontShowInfo", dontShow ? "true" : "false");
+      infoModal.style.display = "none";
+    }
+
+    // 初めての方へ操作
+    function showFirstTimeModal() {
+      firstTimeModal.style.display = "block";
+    }
+    function closeFirstTimeModal() {
+      localStorage.setItem("firstTimeDone", "true");
+      firstTimeModal.style.display = "none";
     }
   </script>
 </body>
