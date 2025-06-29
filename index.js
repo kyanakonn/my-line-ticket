@@ -71,7 +71,7 @@ app.post("/api/ticket", (req, res) => {
   ticketLog.push({
     number: ticketNumber,
     timestamp: Date.now(),
-    userId: userId || null
+    userId: userId || null,
   });
 
   res.json({ number: ticketNumber });
@@ -118,7 +118,7 @@ app.post("/api/notify", async (req, res) => {
     return res.status(400).json({ message: "無効な整理券番号です。" });
   }
 
-  const entry = ticketLog.find(t => t.number === number);
+  const entry = ticketLog.find((t) => t.number === number);
   if (!entry || !entry.userId) {
     return res.status(404).json({ message: `整理券番号 ${number} のユーザー情報が見つかりません。` });
   }
@@ -131,15 +131,15 @@ app.post("/api/notify", async (req, res) => {
         messages: [
           {
             type: "text",
-            text: message || `【手動通知】整理券番号 ${number} の方、まもなく順番です。`
-          }
-        ]
+            text: message || `【手動通知】整理券番号 ${number} の方、まもなく順番です。`,
+          },
+        ],
       },
       {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${LINE_ACCESS_TOKEN}`,
-        }
+        },
       }
     );
     res.json({ message: `番号 ${number} に通知を送信しました。` });
@@ -158,7 +158,7 @@ app.post("/api/reset", (req, res) => {
   res.json({ message: "呼び出し番号と整理券番号、発行ログをリセットしました。" });
 });
 
-// 整理券受付状態を取得する
+// 整理券受付状態を取得する（管理画面・表示画面で使用）
 app.get("/api/ticketing-status", (req, res) => {
   res.json({ closed: isTicketingClosed });
 });
@@ -167,6 +167,12 @@ app.get("/api/ticketing-status", (req, res) => {
 app.post("/api/close-ticketing", (req, res) => {
   isTicketingClosed = true;
   res.json({ message: "本日の新規整理券発行を終了しました。" });
+});
+
+// 整理券受付を再開する（管理者操作）
+app.post("/api/open-ticketing", (req, res) => {
+  isTicketingClosed = false;
+  res.json({ message: "本日の新規整理券発行を再開しました。" });
 });
 
 // トップページリダイレクト
