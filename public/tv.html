@@ -91,16 +91,16 @@
 
     function createBloodSplash(x, y) {
       const particles = [];
-      const count = 30;
+      const count = 50;
       for (let i = 0; i < count; i++) {
         particles.push({
           x: x,
           y: y,
-          vx: (Math.random() - 0.5) * 10,
-          vy: (Math.random() - 1) * 10,
-          radius: Math.random() * 6 + 4,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 1) * 12,
+          radius: Math.random() * 8 + 6,
           alpha: 1,
-          decay: 0.02 + Math.random() * 0.03
+          decay: 0.005 + Math.random() * 0.01 // よりゆっくり消えるように変更
         });
       }
       return particles;
@@ -113,12 +113,12 @@
       particles.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.2;
+        p.vy += 0.25;
         p.alpha -= p.decay;
         ctx.beginPath();
         const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-        gradient.addColorStop(0, `rgba(220, 20, 60, ${p.alpha})`);
-        gradient.addColorStop(1, `rgba(139, 0, 0, 0)`);
+        gradient.addColorStop(0, `rgba(255, 0, 0, ${p.alpha})`);
+        gradient.addColorStop(1, `rgba(100, 0, 0, 0)`);
         ctx.fillStyle = gradient;
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
