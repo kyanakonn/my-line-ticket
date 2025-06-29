@@ -26,7 +26,8 @@
     top: 20px;
     width: 100%;
     text-align: center;
-    font-size: 3vw;
+    font-size: 5vw;         /* 大きく */
+    font-weight: 900;       /* 太く */
     user-select: none;
     text-shadow:
       0 0 5px crimson,
@@ -57,7 +58,7 @@
 </head>
 <body>
 
-<div id="header-text">現在呼び出し中の番号</div>
+<div id="header-text">👻現在呼び出し中の番号👻</div>
 <div id="number">--</div>
 <canvas id="blood-canvas"></canvas>
 
@@ -76,7 +77,7 @@
 
   let currentNumber = null;
 
-  // 血しぶき
+  // 血しぶきパーティクル生成関数
   function createBloodSplash(x, y) {
     const particles = [];
     const count = 30;
@@ -119,7 +120,7 @@
   }
   animate();
 
-  // 画面振動
+  // 画面振動（小刻みに左右上下ランダムに振動）
   function vibrateScreen(duration = 300, intensity = 10) {
     const start = performance.now();
 
@@ -148,7 +149,7 @@
         currentNumber = data.number;
         numberEl.textContent = currentNumber;
 
-        // 血しぶきエフェクト
+        // 血しぶきエフェクト中心を数字の真ん中付近に設定
         const rect = numberEl.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
