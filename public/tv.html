@@ -6,6 +6,10 @@
   <title>現在呼び出し中の番号</title>
   <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Rubik+Mono+One&display=swap" rel="stylesheet">
   <style>
+    html {
+      font-size: 130%;
+    }
+
     body {
       background-color: black;
       color: red;
@@ -18,13 +22,13 @@
     }
 
     h1 {
-      font-size: 2.5em;
+      font-size: 3em;
       margin-bottom: 1em;
     }
 
     .number-display {
       font-family: 'Rubik Mono One', sans-serif;
-      font-size: 7em;
+      font-size: 8em;
       color: red;
       margin: 0.5em 0;
       z-index: 10;
@@ -33,19 +37,18 @@
 
     .time {
       margin-top: 1em;
-      font-size: 1.2em;
+      font-size: 1.5em;
       color: crimson;
       font-family: sans-serif;
     }
 
-    /* 血しぶき */
     .blood-splash {
       position: fixed;
       top: 50%;
       left: 50%;
-      width: 300px;
-      height: 300px;
-      background: url('https://i.ibb.co/8dYvHNd/blood-splash.png') no-repeat center center;
+      width: 400px;
+      height: 400px;
+      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWCAMAAADzJqf9AAAAGFBMVEUAAAD////39/fd3d3v7+/k5OTh4eHz8/PV1dXDJIbTAAABGElEQVR4nO3SQQ3DIAwE0Qjx//8UXWUGBmbU3Zh59R4DSqgUAgEAgEAgEAgEAgEAgEAgEAgEAgEAgEAgECgXYHdtxolrKluW0uNuUUs5qQl7zz9g5J0tb+P1k3Va5Zo1Xrtkq9j3z4cpUoF27Yt8ZL+O4KqUepUpWqVKlSpUqVKldrlZrtbH4cVWqVKlSpUqXqdyX2CnNeZrbPrwPrK3/vDUfN+AwEAgEAgEAgEAgEAgEAgEAgEAkF+CrQMLkATZADYAAAAASUVORK5CYII=') no-repeat center center;
       background-size: contain;
       opacity: 0;
       transform: translate(-50%, -50%) scale(1);
@@ -57,7 +60,7 @@
     @keyframes splash {
       0% {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(0.2);
+        transform: translate(-50%, -50%) scale(0.3);
       }
       50% {
         opacity: 1;
@@ -69,23 +72,22 @@
       }
     }
 
-    /* 画面振動 */
     .shake {
       animation: shake 0.5s;
     }
 
     @keyframes shake {
       0% { transform: translate(0px, 0px); }
-      20% { transform: translate(-10px, 0px); }
-      40% { transform: translate(10px, 0px); }
-      60% { transform: translate(-10px, 0px); }
-      80% { transform: translate(10px, 0px); }
+      20% { transform: translate(-15px, 0px); }
+      40% { transform: translate(15px, 0px); }
+      60% { transform: translate(-15px, 0px); }
+      80% { transform: translate(15px, 0px); }
       100% { transform: translate(0px, 0px); }
     }
   </style>
 </head>
 <body>
-  <h1>🎃 呼び出し中の番号 🎃</h1>
+  <h1>👻 呼び出し中の番号 👻</h1>
   <div class="number-display" id="current-number">--</div>
   <div class="time" id="time">読み込み中...</div>
 
