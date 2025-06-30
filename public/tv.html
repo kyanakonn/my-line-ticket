@@ -47,13 +47,26 @@
       position: absolute;
       bottom: 30px;
       width: 100%;
-      text-align: center;
+      overflow: hidden;
+      white-space: nowrap;
       font-size: 4vw;
-      color: red;
       font-weight: bold;
+      color: red;
+      text-align: left;
       text-shadow:
         0 0 5px darkred,
         0 0 10px red;
+    }
+
+    #status-message span {
+      display: inline-block;
+      padding-left: 100%;
+      animation: slideText 15s linear infinite;
+    }
+
+    @keyframes slideText {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
     }
 
     canvas#blood-canvas {
@@ -70,12 +83,12 @@
 
   <div id="header-text">👻現在呼び出し中の番号👻</div>
   <div id="number">--</div>
-  <div id="status-message">読み込み中...</div>
+  <div id="status-message"><span>読み込み中...</span></div>
   <canvas id="blood-canvas"></canvas>
 
   <script>
     const numberEl = document.getElementById('number');
-    const statusMessageEl = document.getElementById('status-message');
+    const statusMessageEl = document.querySelector('#status-message span');
     const canvas = document.getElementById('blood-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -91,16 +104,16 @@
 
     function createBloodSplash(x, y) {
       const splash = [];
-      const count = 40;
+      const count = 50;
       for (let i = 0; i < count; i++) {
         splash.push({
           x: x,
           y: y,
-          vx: (Math.random() - 0.5) * 14,
-          vy: (Math.random() - 1) * 14,
-          radius: Math.random() * 14 + 18,  // 大きさ
+          vx: (Math.random() - 0.5) * 16,
+          vy: (Math.random() - 1) * 16,
+          radius: Math.random() * 18 + 24,
           alpha: 1,
-          decay: 0.001 + Math.random() * 0.002 // 残る時間
+          decay: 0.0005 + Math.random() * 0.001
         });
       }
       return splash;
@@ -118,8 +131,8 @@
 
         ctx.beginPath();
         const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-        gradient.addColorStop(0, `rgba(255, 80, 80, ${p.alpha})`);  // 赤
-        gradient.addColorStop(1, `rgba(180, 0, 0, 0)`);             // 外側
+        gradient.addColorStop(0, `rgba(255, 30, 30, ${p.alpha})`);
+        gradient.addColorStop(1, `rgba(255, 0, 0, 0)`);
         ctx.fillStyle = gradient;
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
