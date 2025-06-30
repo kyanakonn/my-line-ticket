@@ -185,9 +185,9 @@
         if (!res.ok) throw new Error('status error');
         const data = await res.json();
         if (data.closed) {
-          statusMessageEl.textContent = '本日の新規整理券の発行は終了しました';
+          statusMessageEl.textContent = 'ご好評につき本日の新規整理券発行の受付は終了しました！';
         } else {
-          statusMessageEl.textContent = '新規整理券の発行受付中！';
+          statusMessageEl.textContent = '2年D組「廃校へ、はい行こう」新規整理券の発行受付中！';
         }
       } catch (err) {
         statusMessageEl.textContent = '状態確認エラー';
