@@ -18,85 +18,36 @@
       word-break: break-word;
     }
 
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 1em;
-    }
-
-    .ticket {
-      font-size: 1.5em;
-      margin-top: 1em;
-      line-height: 1.6;
-    }
-
-    .ticket-number {
-      font-size: 2.4em;
-      font-weight: bold;
-      display: block;
-      margin-top: 0.3em;
-    }
-
-    .call-status {
-      font-size: 1.3em;
-      margin-top: 2em;
-    }
-
-    .disabled {
-      background-color: darkred;
-      color: black;
-      cursor: not-allowed;
-    }
-
-    .timer {
-      font-size: 1.2em;
-      margin-top: 1em;
-      color: crimson;
-    }
-
-    .secret {
-      margin-top: 2em;
-    }
+    h1 { font-size: 2.5em; margin-bottom: 1em; }
+    .ticket { font-size: 1.5em; margin-top: 1em; line-height: 1.6; }
+    .ticket-number { font-size: 2.4em; font-weight: bold; display: block; margin-top: 0.3em; }
+    .call-status { font-size: 1.3em; margin-top: 2em; }
+    .disabled { background-color: darkred; color: black; cursor: not-allowed; }
+    .timer { font-size: 1.2em; margin-top: 1em; color: crimson; }
 
     button {
-      font-size: 1em;
-      padding: 0.5em 1.2em;
-      background-color: red;
-      color: black;
-      border: none;
-      border-radius: 5px;
-      margin: 0.5em;
-      cursor: pointer;
+      font-size: 1em; padding: 0.5em 1.2em;
+      background-color: red; color: black;
+      border: none; border-radius: 5px;
+      margin: 0.5em; cursor: pointer;
       transition: background-color 0.3s;
     }
-
-    button:hover:not(.disabled) {
-      background-color: darkred;
-    }
+    button:hover:not(.disabled) { background-color: darkred; }
 
     input[type="password"] {
-      font-size: 1em;
-      padding: 0.4em;
-      width: 200px;
-      text-align: center;
-      border: 2px solid red;
-      background-color: black;
-      color: red;
+      font-size: 1em; padding: 0.4em; width: 200px;
+      text-align: center; border: 2px solid red;
+      background-color: black; color: red;
     }
 
-    #secret-status {
-      color: crimson;
-    }
+    #secret-status { color: crimson; }
 
     .modal {
-      display: none;
-      position: fixed;
+      display: none; position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.95);
-      color: red;
-      z-index: 9999;
-      text-align: center;
-      padding-top: 60px;
-      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.95); color: red;
+      z-index: 9999; text-align: center;
+      padding-top: 60px; overflow-y: auto;
     }
     .modal-content {
       background: #111;
@@ -109,47 +60,59 @@
       line-height: 1.6;
     }
 
-    /* 画面上部の再表示ボタン用スタイル */
     #show-info-button {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background-color: darkred;
-      color: black;
-      border: none;
-      padding: 0.5em 1em;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      z-index: 10000;
+      position: fixed; top: 10px; right: 10px;
+      background-color: darkred; color: black;
+      border: none; padding: 0.5em 1em;
+      border-radius: 5px; cursor: pointer;
+      font-size: 0.9em; z-index: 10000;
     }
-    #show-info-button:hover {
-      background-color: red;
-    }
+    #show-info-button:hover { background-color: red; }
 
-    /* 注意事項のチェックボックス部分 */
     #info-modal label {
-      display: block;
-      margin-top: 1em;
-      font-size: 0.9em;
-      cursor: pointer;
+      display: block; margin-top: 1em;
+      font-size: 0.9em; cursor: pointer;
     }
     #info-modal input[type="checkbox"] {
-      margin-right: 0.5em;
-      vertical-align: middle;
+      margin-right: 0.5em; vertical-align: middle;
       cursor: pointer;
+    }
+
+    /* スプラッシュ画面 */
+    #splash-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100000;
+      opacity: 1;
+      transition: opacity 1.5s ease;
+    }
+
+    #splash-screen img {
+      max-width: 80%;
+      max-height: 80%;
+      object-fit: contain;
     }
   </style>
 </head>
 <body>
+  <!-- スプラッシュ画面 -->
+  <div id="splash-screen" style="display:none;">
+    <img src="https://imgur.com/a/xYfAA1r" alt="スプラッシュ画像" />
+  </div>
+
   <!-- 注意事項再表示ボタン -->
   <button id="show-info-button" onclick="showInfoModal()">注意事項を再表示する</button>
 
-  <!-- 注意事項 -->
-  <div id="info-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title" aria-describedby="info-modal-desc">
+  <!-- 注意事項モーダル -->
+  <div id="info-modal" class="modal">
     <div class="modal-content">
-      <h2 id="info-modal-title">⚠️注意事項⚠️</h2>
-      <p id="info-modal-desc">
+      <h2>⚠️注意事項⚠️</h2>
+      <p>
         ・一組につき一枚整理券を発行してください。<br />
         ・整理券番号は1番から順に割り当てられます。<br />
         ・整理券の発行が上限に達した場合途中で新規整理券発行の受付を終了します。<br />
@@ -165,26 +128,24 @@
     </div>
   </div>
 
-  <!-- 初めての方へ -->
-  <div id="first-time-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="first-time-modal-title" aria-describedby="first-time-modal-desc">
+  <!-- 初めての方へモーダル -->
+  <div id="first-time-modal" class="modal">
     <div class="modal-content">
-      <h2 id="first-time-modal-title">初めて整理券を発行する方へ</h2>
-      <p id="first-time-modal-desc">
-        整理券を初めて発行する方向けの説明です。<br />
+      <h2>初めて整理券を発行する方へ</h2>
+      <p>
         ・次に出てくる画面で許可するを押していただけるとLINEでお知らせを受け取ることができます。<br />
-        ・お知らせでは番号が近くなったら通知でお知らせする機能があり、見逃しを防げます。<br />
+        ・番号が近くなったら通知でお知らせする機能があり、見逃しを防げます。<br />
         ・操作がわからない場合は受付までお尋ねください。
       </p>
       <button onclick="closeFirstTimeModal()">わかりました！</button>
     </div>
   </div>
 
-  <!-- 発行停止 -->
-  <div id="closed-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="closed-modal-title" aria-describedby="closed-modal-desc">
+  <!-- 発行停止モーダル -->
+  <div id="closed-modal" class="modal">
     <div class="modal-content">
-      <h2 id="closed-modal-title">本日の新規整理券の発行は終了しました</h2>
-      <p id="closed-modal-desc">本日の整理券発行の上限枚数に
-        達したため新規整理券発行の受付を終了いたしました。引き続き「整理券を発行する」以外の機能はご利用いただけます。</p>
+      <h2>本日の新規整理券の発行は終了しました</h2>
+      <p>本日の整理券発行の上限枚数に達したため、新規整理券発行の受付を終了いたしました。</p>
       <button onclick="closeClosedModal()">わかりました！</button>
     </div>
   </div>
@@ -211,6 +172,7 @@
     let overrideTime = null;
     let isClosed = false;
 
+    const splash = document.getElementById("splash-screen");
     const issueButton = document.getElementById("issue-button");
     const resultEl = document.getElementById("result");
     const ticketNumEl = document.getElementById("ticket-number");
@@ -221,18 +183,31 @@
     const closedModal = document.getElementById("closed-modal");
     const infoModal = document.getElementById("info-modal");
     const firstTimeModal = document.getElementById("first-time-modal");
-    const showInfoButton = document.getElementById("show-info-button");
     const dontShowInfoCheckbox = document.getElementById("dont-show-info-checkbox");
 
-    window.addEventListener("DOMContentLoaded", () => {
-      initializeLIFF();
-      checkAndShowModals();
+    window.addEventListener("load", () => {
+      const splashShown = localStorage.getItem("splashShown") === "true";
+
+      if (!splashShown) {
+        splash.style.display = "flex";
+        setTimeout(() => {
+          splash.style.opacity = 0;
+          setTimeout(() => {
+            splash.style.display = "none";
+            localStorage.setItem("splashShown", "true");
+            initializeLIFF();
+            checkAndShowModals();
+          }, 1500);
+        }, 1200);
+      } else {
+        initializeLIFF();
+        checkAndShowModals();
+      }
     });
 
     async function initializeLIFF() {
       try {
         await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
-
         if (!liff.isLoggedIn()) {
           const hasRedirected = sessionStorage.getItem("liffRedirected");
           if (!hasRedirected) {
@@ -248,9 +223,7 @@
         const profile = await liff.getProfile();
         userId = profile.userId;
 
-        // 発券停止状態を取得
         await fetchTicketingStatus();
-
         restoreTicketNumber();
         disableButtonForRemainingTime();
         fetchCurrentNumber();
@@ -264,10 +237,8 @@
     async function fetchTicketingStatus() {
       try {
         const res = await fetch("/api/ticketing-status");
-        if (!res.ok) throw new Error("Failed to fetch status");
         const data = await res.json();
         isClosed = data.closed;
-
         if (isClosed) {
           showClosedModal();
           issueButton.disabled = true;
@@ -279,8 +250,7 @@
             issueButton.classList.remove("disabled");
           }
         }
-      } catch (e) {
-        console.error("受付状態取得エラー:", e);
+      } catch {
         issueButton.disabled = false;
         issueButton.classList.remove("disabled");
       }
@@ -296,7 +266,6 @@
 
     async function getTicket() {
       if (isClosed) return;
-
       const lastIssued = Date.now();
       localStorage.setItem("lastIssuedAt", lastIssued);
       overrideTime = null;
@@ -316,15 +285,12 @@
 
         const data = await res.json();
         const ticketNumber = data.number;
-
         ticketNumEl.textContent = `${ticketNumber} 番`;
         localStorage.setItem("ticketNumber", ticketNumber);
-
         disableButtonForRemainingTime();
         secretStatus.textContent = "";
       } catch (err) {
         resultEl.textContent = "整理券の発行に失敗しました。受付までお越しください。";
-        console.error(err);
       }
     }
 
@@ -380,7 +346,7 @@
         const res = await fetch("/api/number");
         const data = await res.json();
         numberEl.textContent = data.number;
-      } catch (err) {
+      } catch {
         numberEl.textContent = "取得失敗";
       }
     }
@@ -403,38 +369,30 @@
       secretInput.value = "";
     }
 
-    // 表示制御
     function checkAndShowModals() {
-      // 注意事項の表示判定
-      const dontShowInfo = localStorage.getItem("dontShowInfo") === "true";
-      if (!dontShowInfo) {
+      if (localStorage.getItem("dontShowInfo") !== "true") {
         showInfoModal();
       }
-
-      // 初めての方へ表示（初回のみ）
-      const firstTimeDone = localStorage.getItem("firstTimeDone") === "true";
-      if (!firstTimeDone) {
+      if (localStorage.getItem("firstTimeDone") !== "true") {
         showFirstTimeModal();
       }
     }
 
-    // 注意事項モーダル操作
     function showInfoModal() {
       infoModal.style.display = "block";
-      // チェック状態リセット
       dontShowInfoCheckbox.checked = false;
     }
+
     function closeInfoModal() {
-      // チェックボックスの状態を保存
       const dontShow = dontShowInfoCheckbox.checked;
       localStorage.setItem("dontShowInfo", dontShow ? "true" : "false");
       infoModal.style.display = "none";
     }
 
-    // 初めての方へ操作
     function showFirstTimeModal() {
       firstTimeModal.style.display = "block";
     }
+
     function closeFirstTimeModal() {
       localStorage.setItem("firstTimeDone", "true");
       firstTimeModal.style.display = "none";
