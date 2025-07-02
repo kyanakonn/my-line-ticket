@@ -17,122 +17,54 @@
       overflow-x: hidden;
       word-break: break-word;
     }
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 1em;
-    }
-    .ticket {
-      font-size: 1.5em;
-      margin-top: 1em;
-      line-height: 1.6;
-    }
-    .ticket-number {
-      font-size: 2.4em;
-      font-weight: bold;
-      display: block;
-      margin-top: 0.3em;
-    }
-    .call-status {
-      font-size: 1.3em;
-      margin-top: 2em;
-    }
-    .timer {
-      font-size: 1.2em;
-      margin-top: 1em;
-      color: crimson;
-    }
-    .waiting-info {
-      font-size: 1.2em;
-      margin-top: 1em;
-    }
+    h1 { font-size: 2.5em; margin-bottom: 1em; }
+    .ticket { font-size: 1.5em; margin-top: 1em; line-height: 1.6; }
+    .ticket-number { font-size: 2.4em; font-weight: bold; display: block; margin-top: 0.3em; }
+    .call-status { font-size: 1.3em; margin-top: 2em; }
+    .timer { font-size: 1.2em; margin-top: 1em; color: crimson; }
+    .waiting-info { font-size: 1.2em; margin-top: 1em; }
     #complete-button {
-      display: none;
-      margin-top: 2em;
-      font-size: 1.2em;
-      background-color: crimson;
-      color: black;
-      border: none;
-      border-radius: 5px;
-      padding: 0.5em 1em;
+      display: none; margin-top: 2em; font-size: 1.2em;
+      background-color: crimson; color: black;
+      border: none; border-radius: 5px; padding: 0.5em 1em;
       cursor: pointer;
     }
     button {
-      font-size: 1.2em;
-      padding: 0.7em 2em;
-      margin: 0.5em;
-      background-color: red;
-      color: black;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
+      font-size: 1.2em; padding: 0.7em 2em; margin: 0.5em;
+      background-color: red; color: black;
+      border: none; border-radius: 5px;
+      cursor: pointer; transition: background-color 0.3s;
     }
-    button.disabled {
-      background-color: darkred;
-      color: black;
-      cursor: not-allowed;
-    }
-    button:hover:not(.disabled) {
-      background-color: darkred;
-    }
+    button.disabled { background-color: darkred; color: black; cursor: not-allowed; }
+    button:hover:not(.disabled) { background-color: darkred; }
     .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       z-index: 1000;
     }
     .modal-content {
-      background: #111;
-      padding: 2em;
-      width: 90%;
-      max-width: 400px;
-      border: 2px solid red;
-      border-radius: 10px;
-      color: red;
-      text-align: center;
+      background: #111; padding: 2em; width: 90%;
+      max-width: 400px; border: 2px solid red;
+      border-radius: 10px; color: red; text-align: center;
     }
-    .modal-content button {
-      font-size: 0.9em;
-      padding: 0.4em 1em;
-    }
+    .modal-content button { font-size: 0.9em; padding: 0.4em 1em; }
     #show-info-button {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background-color: darkred;
-      color: black;
-      border: none;
-      padding: 0.5em 1em;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 2000;
-      font-size: 0.9em;
+      position: fixed; top: 10px; right: 10px;
+      background-color: darkred; color: black;
+      border: none; padding: 0.5em 1em; border-radius: 5px;
+      cursor: pointer; z-index: 2000; font-size: 0.9em;
     }
-    #show-info-button:hover {
-      background-color: red;
-    }
+    #show-info-button:hover { background-color: red; }
     #splash-screen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-      opacity: 1;
-      transition: opacity 1s ease;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: black; display: flex; align-items: center;
+      justify-content: center; z-index: 3000;
+      opacity: 1; transition: opacity 1s ease;
     }
     #splash-screen img {
-      max-width: 95vw;
-      max-height: 95vh;
+      max-width: 95vw; max-height: 95vh;
       object-fit: contain;
     }
   </style>
@@ -193,68 +125,56 @@
   </div>
   <div id="missed-info" style="margin-top:1em;color:orange;font-size:1em;"></div>
 
-  <script>
-    const DISABLE_MS = 60 * 60 * 1000;
-    let userId = null;
-    let countdownInterval = null;
-    let overrideTime = null;
-    let isClosed = false;
-    let checkUnlockInterval = null;
+<script>
+const splash = document.getElementById("splash-screen");
+const issueButton = document.getElementById("issue-button");
+const ticketNumEl = document.getElementById("ticket-number");
+const numberEl = document.getElementById("current-number");
+const waitingInfo = document.getElementById("waiting-info");
+const countdownEl = document.getElementById("countdown");
+const completeButton = document.getElementById("complete-button");
+const completeNote = document.getElementById("complete-note");
+const missedInfo = document.getElementById("missed-info");
+const infoModal = document.getElementById("info-modal");
+const firstTimeModal = document.getElementById("first-time-modal");
+const closedModal = document.getElementById("closed-modal");
 
-    const splash = document.getElementById("splash-screen");
-    const issueButton = document.getElementById("issue-button");
-    const ticketNumEl = document.getElementById("ticket-number");
-    const numberEl = document.getElementById("current-number");
-    const waitingInfo = document.getElementById("waiting-info");
-    const countdownEl = document.getElementById("countdown");
-    const completeButton = document.getElementById("complete-button");
-    const completeNote = document.getElementById("complete-note");
-    const missedInfo = document.getElementById("missed-info");
-    const infoModal = document.getElementById("info-modal");
-    const firstTimeModal = document.getElementById("first-time-modal");
-    const closedModal = document.getElementById("closed-modal");
-    const dontShowInfoCheckbox = document.getElementById("dont-show-info-checkbox");
+const DISABLE_MS = 60 * 60 * 1000;
+let userId = null;
+let countdownInterval = null;
+let overrideTime = null;
+let isClosed = false;
+let checkUnlockInterval = null;
 
-    window.addEventListener("load", () => {
-      setTimeout(hideSplash, 1500);
-      initializeLIFF();
-    });
+window.addEventListener("load", () => {
+  setTimeout(() => splash.style.opacity = "0", 1000);
+  setTimeout(() => splash.remove(), 2000);
+  initializeLIFF();
+});
 
-    function hideSplash() {
-      splash.style.opacity = "0";
-      setTimeout(() => splash.remove(), 1000);
+async function initializeLIFF() {
+  try {
+    await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
+    if (liff.isLoggedIn()) {
+      const profile = await liff.getProfile();
+      userId = profile.userId;
     }
+  } catch (err) {
+    console.error("LIFF 初期化失敗:", err);
+  }
+  await postInit();
+}
 
-    async function initializeLIFF() {
-      try {
-        await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
-        if (liff.isLoggedIn()) {
-          const profile = await liff.getProfile();
-          userId = profile.userId;
-        }
-      } catch (err) {
-        console.error("LIFF 初期化に失敗:", err);
-      }
-      await postInit();
-    }
-
-    async function postInit() {
+async function postInit() {
   await fetchTicketingStatus();
   restoreTicketNumber();
   disableButtonForRemainingTime();
   fetchCurrentNumber();
   setInterval(fetchCurrentNumber, 3000);
 
-  console.log("postInit called");
-  const firstTimeDone = localStorage.getItem("firstTimeDone");
-  console.log("firstTimeDone =", firstTimeDone);
-  if (firstTimeDone !== "true") {
-    console.log("firstTimeDone is not true, show firstTimeModal");
+  if (localStorage.getItem("firstTimeDone") !== "true") {
     showFirstTimeModal();
-  } else {
-    console.log("firstTimeDone is true, skip firstTimeModal");
   }
-
   if (localStorage.getItem("dont-show-info") !== "true") {
     showInfoModal();
   }
@@ -262,32 +182,54 @@
   if (checkUnlockInterval) clearInterval(checkUnlockInterval);
   checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
   await checkLimitUnlockStatus();
-
-  hideSplash();
 }
 
-    async function checkLimitUnlockStatus() {
-      if (!userId) return;
-      try {
-        const res = await fetch("/api/check-unlock", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
-        });
-        if (!res.ok) throw new Error("解除状態取得失敗");
-        const data = await res.json();
-        if (data.unlocked) {
-          overrideTime = 0;
-          localStorage.removeItem("lastIssuedAt");
-          issueButton.disabled = false;
-          issueButton.classList.remove("disabled");
-          countdownEl.textContent = "";
-          if (countdownInterval) clearInterval(countdownInterval);
-        }
-      } catch (err) {
-        console.error("解除状態チェック失敗:", err);
-      }
+function showInfoModal() {
+  document.getElementById("dont-show-info-checkbox").checked = false;
+  infoModal.style.display = "flex";
+}
+
+function closeInfoModal() {
+  const checkbox = document.getElementById("dont-show-info-checkbox");
+  if (checkbox && checkbox.checked) {
+    localStorage.setItem("dont-show-info", "true");
+  }
+  infoModal.style.display = "none";
+}
+
+function showFirstTimeModal() {
+  firstTimeModal.style.display = "flex";
+}
+function closeFirstTimeModal() {
+  localStorage.setItem("firstTimeDone", "true");
+  firstTimeModal.style.display = "none";
+}
+
+function closeClosedModal() {
+  closedModal.style.display = "none";
+}
+
+async function checkLimitUnlockStatus() {
+  if (!userId) return;
+  try {
+    const res = await fetch("/api/check-unlock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+    const data = await res.json();
+    if (data.unlocked) {
+      overrideTime = 0;
+      localStorage.removeItem("lastIssuedAt");
+      issueButton.disabled = false;
+      issueButton.classList.remove("disabled");
+      countdownEl.textContent = "";
+      clearInterval(countdownInterval);
     }
+  } catch (err) {
+    console.error("解除状態取得失敗:", err);
+  }
+}
 
     async function fetchTicketingStatus() {
       try {
