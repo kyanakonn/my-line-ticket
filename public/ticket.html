@@ -264,11 +264,6 @@
   await checkLimitUnlockStatus();
 }
 
-      if (checkUnlockInterval) clearInterval(checkUnlockInterval);
-      checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
-      await checkLimitUnlockStatus();
-    }
-
     async function checkLimitUnlockStatus() {
       if (!userId) return;
       try {
