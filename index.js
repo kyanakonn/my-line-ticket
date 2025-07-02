@@ -7,18 +7,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// 整理券管理
 let currentTicket = 1;
 let currentNumber = 0;
-let ticketLog = []; // 発行ログ（{ number, timestamp, userId, completed, limitUnlocked }）
+let ticketLog = []; // { number, timestamp, userId, completed, limitUnlocked }
 let isTicketingClosed = false;
 
-// LINE連携設定
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
 const LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push";
 const LINE_REPLY_URL = "https://api.line.me/v2/bot/message/reply";
 
-// LINE webhook: userId 登録用
 app.post("/webhook", async (req, res) => {
   const events = req.body.events;
   if (!events || events.length === 0) return res.status(200).send("No events");
@@ -39,7 +36,6 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-// 整理券を発行する
 app.post("/api/ticket", (req, res) => {
   if (isTicketingClosed) return res.status(403).json({ message: "本日の新規整理券の発行は終了しました。" });
   const { userId } = req.body;
@@ -48,23 +44,20 @@ app.post("/api/ticket", (req, res) => {
     number: ticketNumber,
     timestamp: Date.now(),
     userId: userId || null,
-    completed: false,           
-    limitUnlocked: false       
+    completed: false,
+    limitUnlocked: false
   });
   res.json({ number: ticketNumber });
 });
 
-// 呼び出し番号取得
 app.get("/api/number", (req, res) => res.json({ number: currentNumber }));
 
-// 呼び出し進める／戻す
 app.post("/api/call", (req, res) => {
   const diff = typeof req.body.diff === "number" ? req.body.diff : 1;
   currentNumber = Math.max(0, currentNumber + diff);
   res.json({ message: `番号 ${currentNumber} を呼び出しました。` });
 });
 
-// 呼び出し番号直接設定
 app.post("/api/set", (req, res) => {
   const { number } = req.body;
   if (typeof number !== "number" || number < 0) return res.status(400).json({ message: "無効な番号です。" });
@@ -72,13 +65,10 @@ app.post("/api/set", (req, res) => {
   res.json({ message: `呼び出し番号を ${currentNumber} に設定しました。` });
 });
 
-// 最後に発行された整理券番号
 app.get("/api/ticket/last", (req, res) => res.json({ last: currentTicket - 1 }));
 
-// 整理券発行ログ取得（completed, limitUnlocked フィールド含む）
 app.get("/api/ticket/log", (req, res) => res.json(ticketLog));
 
-// 任意整理券への通知
 app.post("/api/notify", async (req, res) => {
   const { number, message } = req.body;
   if (typeof number !== "number" || number <= 0) return res.status(400).json({ message: "無効な整理券番号です。" });
@@ -96,7 +86,6 @@ app.post("/api/notify", async (req, res) => {
   }
 });
 
-// 受付完了 
 app.post("/api/complete", (req, res) => {
   const { userId, ticketNumber } = req.body;
   const entry = ticketLog.find(t => t.number === ticketNumber && t.userId === userId);
@@ -105,18 +94,22 @@ app.post("/api/complete", (req, res) => {
   res.json({ success: true });
 });
 
-// 制限時間解除 
 app.post("/api/unlock-limit", (req, res) => {
   const { number } = req.body;
   const entry = ticketLog.find(t => t.number === number);
   if (!entry) return res.status(404).json({ success: false, message: "整理券が見つかりません。" });
   if (entry.limitUnlocked) return res.status(400).json({ success: false, message: "すでに解除済みです。" });
   entry.limitUnlocked = true;
-  // 必要であれば timestamp を操作して再発行可能にできる
   res.json({ success: true });
 });
 
-// 管理者用リセット
+
+app.post("/api/check-unlock", (req, res) => {
+  const { userId } = req.body;
+  const entry = ticketLog.find(t => t.userId === userId);
+  res.json({ unlocked: entry?.limitUnlocked || false });
+});
+
 app.post("/api/reset", (req, res) => {
   currentNumber = 0;
   currentTicket = 1;
@@ -125,22 +118,19 @@ app.post("/api/reset", (req, res) => {
   res.json({ message: "呼び出し番号と整理券番号、発行ログをリセットしました。" });
 });
 
-// 受付状態取得
 app.get("/api/ticketing-status", (req, res) => res.json({ closed: isTicketingClosed }));
 
-// 発行停止／再開
 app.post("/api/close-ticketing", (req, res) => {
   isTicketingClosed = true;
   res.json({ message: "本日の新規整理券発行を終了しました。" });
 });
+
 app.post("/api/open-ticketing", (req, res) => {
   isTicketingClosed = false;
   res.json({ message: "本日の新規整理券発行を再開しました。" });
 });
 
-// LINE発券ページへリダイレクト
 app.get("/", (req, res) => res.redirect("/ticket.html"));
 
-// サーバ起動
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`✅ Server running on port ${port}`));
