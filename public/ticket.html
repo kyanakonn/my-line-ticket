@@ -27,9 +27,7 @@
   </style>
 </head>
 <body>
-  <div id="splash-screen">
-    <img src="https://imgur.com/a/xYfAA1r" alt="スプラッシュ画像"/>
-  </div>
+  <div id="splash-screen"><img src="https://imgur.com/a/xYfAA1r" alt="スプラッシュ画像"/></div>
 
   <button id="show-info-button" onclick="showInfoModal()">注意事項を再表示する</button>
 
@@ -44,9 +42,7 @@
         ・整理券発行後のキャンセルは受付までお越しください。<br/>
         ・呼び出し中に間に合わなかった場合でも受付で対応いたします。
       </p>
-      <label>
-        <input type="checkbox" id="dont-show-info-checkbox"/> 次回からこれを表示しない
-      </label><br/>
+      <label><input type="checkbox" id="dont-show-info-checkbox"/> 次回からこれを表示しない</label><br/>
       <button onclick="closeInfoModal()">わかりました！</button>
     </div>
   </div>
@@ -78,6 +74,10 @@
   <div class="waiting-info" id="waiting-info"></div>
   <div class="timer" id="countdown"></div>
   <button id="complete-button" onclick="confirmComplete()">受付を完了する</button>
+  <div id="complete-note" style="margin-top:1em;color:crimson;font-size:1em;display:none;">
+    このボタンは受付の指示に従って操作してください。
+  </div>
+  <div id="missed-info" style="margin-top:1em;color:orange;font-size:1em;"></div>
 
   <script>
     const DISABLE_MS = 60 * 60 * 1000;
@@ -86,7 +86,6 @@
     let overrideTime = null;
     let isClosed = false;
 
-    // 要素取得
     const splash = document.getElementById("splash-screen");
     const issueButton = document.getElementById("issue-button");
     const ticketNumEl = document.getElementById("ticket-number");
@@ -94,18 +93,18 @@
     const waitingInfo = document.getElementById("waiting-info");
     const countdownEl = document.getElementById("countdown");
     const completeButton = document.getElementById("complete-button");
+    const completeNote = document.getElementById("complete-note");
+    const missedInfo = document.getElementById("missed-info");
     const infoModal = document.getElementById("info-modal");
     const firstTimeModal = document.getElementById("first-time-modal");
     const closedModal = document.getElementById("closed-modal");
     const dontShowInfoCheckbox = document.getElementById("dont-show-info-checkbox");
 
-    // サイト起動時
     window.addEventListener("load", () => {
       setTimeout(hideSplash, 1500);
       initializeLIFF();
     });
 
-    // スプラッシュ画面非表示処理
     function hideSplash() {
       splash.style.opacity = "0";
       setTimeout(() => splash.remove(), 1000);
@@ -182,7 +181,6 @@
     function disableButtonForRemainingTime() {
       const base = overrideTime || parseInt(localStorage.getItem("lastIssuedAt") || "0");
       const remain = DISABLE_MS - (Date.now() - base);
-
       if (remain > 0 || isClosed) {
         issueButton.disabled = true;
         issueButton.classList.add("disabled");
@@ -229,6 +227,7 @@
         const data = await res.json();
         ticketNumEl.textContent = `${data.number} 番`;
         localStorage.setItem("ticketNumber", data.number);
+        localStorage.setItem("completed", "false");
         disableButtonForRemainingTime();
       } catch {
         alert("整理券の発行に失敗しました。受付までお越しください。");
@@ -248,24 +247,40 @@
     }
 
     function updateWaitingInfo(current, my) {
+      missedInfo.textContent = "";
+      completeNote.style.display = "none";
+
       if (isNaN(current) || isNaN(my)) {
         waitingInfo.textContent = "";
         completeButton.style.display = "none";
         return;
       }
+
+      const completed = localStorage.getItem("completed") === "true";
       const diff = my - current;
-      if (diff === 0) {
+
+      if (diff === 0 && !completed) {
         waitingInfo.textContent = "順番です！今すぐ受付までお越しください！";
         waitingInfo.style.color = "red";
         completeButton.style.display = "inline-block";
+        completeNote.style.display = "block";
       } else if (diff > 0 && diff <= 5) {
         waitingInfo.textContent = "もうすぐ順番です。受付までお越しください！";
         waitingInfo.style.color = "red";
         completeButton.style.display = "none";
-      } else if (diff <= 10) {
+      } else if (diff <= 10 && diff > 0) {
         waitingInfo.textContent = "順番が近づいてきています。こまめにチェックしてください！";
         waitingInfo.style.color = "orange";
         completeButton.style.display = "none";
+      } else if (diff < 0) {
+        completeButton.style.display = "none";
+        if (completed) {
+          waitingInfo.textContent = "ご利用いただきありがとうございました！";
+          waitingInfo.style.color = "lightblue";
+        } else {
+          waitingInfo.textContent = "";
+          missedInfo.innerHTML = `受付で ${my} 番の番号のお客様を確認できなかったため、次の番号のお客様をお呼びしました。<br/>受付までお越しくだされば対応いたします。`;
+        }
       } else {
         waitingInfo.textContent = "番号を気にしながら、他の場所をお楽しみください。";
         waitingInfo.style.color = "lightgreen";
@@ -286,7 +301,9 @@
         }),
       });
       alert("受付完了しました。");
+      localStorage.setItem("completed", "true");
       completeButton.style.display = "none";
+      completeNote.style.display = "none";
     }
   </script>
 </body>
