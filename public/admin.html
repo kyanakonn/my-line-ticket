@@ -26,9 +26,7 @@
       margin: 0.5em;
       text-align: center;
     }
-    input[type="number"] {
-      width: 5em;
-    }
+    input[type="number"] { width: 5em; }
     textarea {
       width: 80%;
       max-width: 400px;
@@ -49,7 +47,6 @@
     #auth-screen {
       margin-top: 5em;
     }
-    /* リセットボタンのデザイン調整 */
     #reset-button {
       background-color: #d9534f;
       color: white;
@@ -72,7 +69,6 @@
 </head>
 <body>
 
-  <!-- パスワード入力画面 -->
   <div id="auth-screen">
     <h2>管理者ページにアクセスするにはパスワードを入力してください</h2>
     <input type="password" id="password-input" placeholder="パスワード" />
@@ -80,7 +76,6 @@
     <p id="auth-message" style="color: red;"></p>
   </div>
 
-  <!-- 管理画面 -->
   <div id="admin-screen" style="display: none;">
     <h1>管理者用：呼び出し操作</h1>
 
@@ -107,7 +102,7 @@
 
     <p id="message"></p>
 
-    <h2>📩 任意の整理券番号に通知を送信</h2>
+    <h2>任意の整理券番号に通知を送信</h2>
     <input type="number" id="notifyNumber" placeholder="整理券番号 (例: 23)" />
     <br />
     <textarea id="notifyMessage" placeholder="通知メッセージを入力してください"></textarea>
@@ -115,18 +110,24 @@
     <button onclick="sendNotification()">通知を送信</button>
     <p id="notify-status" style="color: green;"></p>
 
+    <h2>制限時間を解除する</h2>
+    <p>指定した整理券番号の人に対して、1時間制限を一度だけ解除できます。</p>
+    <input type="number" id="unlock-ticket-number" placeholder="整理券番号 (例: 25)" />
+    <button onclick="unlockLimit()">制限時間を解除する</button>
+    <p id="unlock-status" style="color: darkgreen;"></p>
+
     <h2>📋 整理券発行記録</h2>
     <table>
       <thead>
         <tr>
           <th>整理券番号</th>
           <th>発行日時</th>
+          <th>受付完了</th>
         </tr>
       </thead>
       <tbody id="log-table-body"></tbody>
     </table>
 
-    <!-- 新規整理券発行制御ボタン -->
     <div style="margin-top: 2em;">
       <button id="close-ticketing-button" onclick="closeTicketing()" style="background-color: #d9534f; color: white; font-weight: bold;">
         本日の新規整理券発行を終了する
@@ -136,7 +137,6 @@
       </button>
     </div>
 
-    <!-- リセットボタン -->
     <button id="reset-button" onclick="resetAll()">すべてリセット</button>
     <p id="reset-message"></p>
   </div>
@@ -179,24 +179,30 @@
 
         const tbody = document.getElementById("log-table-body");
         tbody.innerHTML = "";
-
         logData.slice().reverse().forEach(item => {
           const row = document.createElement("tr");
+
           const tdNumber = document.createElement("td");
-          const tdTime = document.createElement("td");
           tdNumber.textContent = item.number;
+
+          const tdTime = document.createElement("td");
           tdTime.textContent = new Date(item.timestamp).toLocaleString();
+
+          const tdComplete = document.createElement("td");
+          tdComplete.textContent = item.completed ? "✔ 完了" : "— 未完了";
+          tdComplete.style.color = item.completed ? "green" : "gray";
+
           row.appendChild(tdNumber);
           row.appendChild(tdTime);
+          row.appendChild(tdComplete);
+
           tbody.appendChild(row);
         });
 
-        // 新規発行停止中ならボタンの無効化・有効化切り替え
         document.getElementById("close-ticketing-button").disabled = statusData.closed;
         document.getElementById("open-ticketing-button").disabled = !statusData.closed;
-
-        // リセットメッセージはリフレッシュ時は消す
         document.getElementById("reset-message").textContent = "";
+
       } catch (error) {
         console.error(error);
         document.getElementById("message").textContent = "データの取得に失敗しました。";
@@ -268,38 +274,49 @@
       }
     }
 
-    // リセット機能
-    async function resetAll() {
-      if (!confirm("本当にすべての整理券番号と記録をリセットしますか？")) {
+    async function unlockLimit() {
+      const num = parseInt(document.getElementById("unlock-ticket-number").value);
+      const status = document.getElementById("unlock-status");
+
+      if (isNaN(num) || num <= 0) {
+        status.textContent = "有効な整理券番号を入力してください。";
         return;
       }
+
       try {
-        const res = await fetch("/api/reset", {
+        const res = await fetch("/api/unlock-limit", {
           method: "POST",
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ number: num })
         });
+
         const data = await res.json();
-        if (res.ok) {
-          document.getElementById("reset-message").textContent = "リセットに成功しました。";
-          refreshAll();
-        } else {
-          document.getElementById("reset-message").textContent = data.message || "リセットに失敗しました。";
-        }
+        status.textContent = data.success
+          ? `番号 ${num} の制限時間を解除しました。`
+          : data.message || "解除に失敗しました。";
+      } catch (err) {
+        status.textContent = "サーバーに接続できませんでした。";
+        console.error(err);
+      }
+    }
+
+    async function resetAll() {
+      if (!confirm("本当にすべての整理券番号と記録をリセットしますか？")) return;
+      try {
+        const res = await fetch("/api/reset", { method: "POST", headers: { "Content-Type": "application/json" } });
+        const data = await res.json();
+        document.getElementById("reset-message").textContent = res.ok ? "リセットに成功しました。" : data.message || "リセットに失敗しました。";
+        refreshAll();
       } catch (err) {
         document.getElementById("reset-message").textContent = "リセット処理中にエラーが発生しました。";
         console.error(err);
       }
     }
 
-    // 新規整理券発行を停止
     async function closeTicketing() {
       if (!confirm("本日の新規整理券発行を終了しますか？")) return;
-
       try {
-        const res = await fetch("/api/close-ticketing", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        });
+        const res = await fetch("/api/close-ticketing", { method: "POST", headers: { "Content-Type": "application/json" } });
         const data = await res.json();
         alert(data.message || "本日の新規整理券発行を終了しました。");
         refreshAll();
@@ -309,15 +326,10 @@
       }
     }
 
-    // 新規整理券発行を再開
     async function openTicketing() {
       if (!confirm("本日の新規整理券発行を再開しますか？")) return;
-
       try {
-        const res = await fetch("/api/open-ticketing", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        });
+        const res = await fetch("/api/open-ticketing", { method: "POST", headers: { "Content-Type": "application/json" } });
         const data = await res.json();
         alert(data.message || "本日の新規整理券発行を再開しました。");
         refreshAll();
@@ -327,5 +339,6 @@
       }
     }
   </script>
+
 </body>
 </html>
