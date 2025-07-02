@@ -264,17 +264,6 @@
   await checkLimitUnlockStatus();
 }
 
-
-     const firstTimeDone = localStorage.getItem("firstTimeDone");
-console.log("firstTimeDone=", firstTimeDone);
-if (!firstTimeDone) {
-  showFirstTimeModal();
-}
-
-  　  if (localStorage.getItem("dont-show-info") !== "true") {
-        showInfoModal();
-      }
-
       if (checkUnlockInterval) clearInterval(checkUnlockInterval);
       checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
       await checkLimitUnlockStatus();
