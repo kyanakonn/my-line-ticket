@@ -239,11 +239,31 @@
     }
 
     async function postInit() {
-      await fetchTicketingStatus();
-      restoreTicketNumber();
-      disableButtonForRemainingTime();
-      fetchCurrentNumber();
-      setInterval(fetchCurrentNumber, 3000);
+  await fetchTicketingStatus();
+  restoreTicketNumber();
+  disableButtonForRemainingTime();
+  fetchCurrentNumber();
+  setInterval(fetchCurrentNumber, 3000);
+
+  console.log("postInit called");
+  const firstTimeDone = localStorage.getItem("firstTimeDone");
+  console.log("firstTimeDone =", firstTimeDone);
+  if (firstTimeDone !== "true") {
+    console.log("firstTimeDone is not true, show firstTimeModal");
+    showFirstTimeModal();
+  } else {
+    console.log("firstTimeDone is true, skip firstTimeModal");
+  }
+
+  if (localStorage.getItem("dont-show-info") !== "true") {
+    showInfoModal();
+  }
+
+  if (checkUnlockInterval) clearInterval(checkUnlockInterval);
+  checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
+  await checkLimitUnlockStatus();
+}
+
 
      const firstTimeDone = localStorage.getItem("firstTimeDone");
 console.log("firstTimeDone=", firstTimeDone);
