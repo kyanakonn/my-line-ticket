@@ -1,99 +1,52 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet"/>
   <style>
-    body {
-      font-family: 'Creepster', cursive;
-      background-color: black;
-      color: red;
-      text-align: center;
-      padding: 2em;
-      margin: 0;
-      overflow-x: hidden;
-      word-break: break-word;
-    }
-    h1 { font-size: 2.5em; margin-bottom: 1em; }
-    .ticket { font-size: 1.5em; margin-top: 1em; line-height: 1.6; }
-    .ticket-number { font-size: 2.4em; font-weight: bold; display: block; margin-top: 0.3em; }
-    .call-status { font-size: 1.3em; margin-top: 2em; }
-    .timer { font-size: 1.2em; margin-top: 1em; color: crimson; }
-    .waiting-info { font-size: 1.2em; margin-top: 1em; }
-    #complete-button { display: none; margin-top: 2em; font-size: 1.2em; background-color: crimson; }
-    button {
-      font-size: 1em;
-      padding: 0.5em 1.2em;
-      background-color: red;
-      color: black;
-      border: none;
-      border-radius: 5px;
-      margin: 0.5em;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover:not(.disabled) { background-color: darkred; }
-    .disabled { background-color: darkred; color: black; cursor: not-allowed; }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.8);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-content {
-      background: #111;
-      padding: 2em;
-      margin: auto;
-      width: 90%;
-      max-width: 400px;
-      border: 2px solid red;
-      border-radius: 10px;
-      color: red;
-      text-align: center;
-    }
-    #show-info-button {
-      position: fixed; top:10px; right:10px;
-      background-color: darkred; color: black;
-      border:none; padding:0.5em 1em;
-      border-radius:5px; cursor:pointer; font-size:0.9em; z-index:2000;
-    }
-    #show-info-button:hover { background-color:red; }
-    #info-modal label { display:block; margin-top:1em; font-size:0.9em; cursor:pointer;}
-    #info-modal input[type="checkbox"] { margin-right:0.5em; vertical-align:middle;}
-    #splash-screen {
-      position: fixed; top:0; left:0;
-      width:100vw; height:100vh;
-      background:black; display:flex;
-      align-items:center; justify-content:center;
-      z-index:3000; opacity:1;
-      transition:opacity 1.5s ease;
-    }
-    #splash-screen img { max-width:80%; max-height:80%; object-fit:contain;}
+    body{font-family:'Creepster',cursive;background:black;color:red;text-align:center;padding:2em;margin:0;overflow-x:hidden;word-break:break-word;}
+    h1{font-size:2.5em;margin-bottom:1em;}
+    .ticket{font-size:1.5em;margin-top:1em;line-height:1.6;}
+    .ticket-number{font-size:2.4em;font-weight:bold;display:block;margin-top:0.3em;}
+    .call-status{font-size:1.3em;margin-top:2em;}
+    .timer{font-size:1.2em;margin-top:1em;color:crimson;}
+    .waiting-info{font-size:1.2em;margin-top:1em;}
+    #complete-button{display:none;margin-top:2em;font-size:1.2em;background-color:crimson;color:black;border:none;border-radius:5px;padding:0.5em 1em;cursor:pointer;}
+    button{font-size:1em;padding:0.5em 1.2em;margin:0.5em;background-color:red;color:black;border:none;border-radius:5px;cursor:pointer;transition:background-color .3s;}
+    button.disabled{background-color:darkred;color:black;cursor:not-allowed;}
+    button:hover:not(.disabled){background-color:darkred;}
+    .modal{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;}
+    .modal-content{background:#111;padding:2em;width:90%;max-width:400px;border:2px solid red;border-radius:10px;color:red;text-align:center;}
+    #show-info-button{position:fixed;top:10px;right:10px;background-color:darkred;color:black;border:none;padding:0.5em 1em;border-radius:5px;cursor:pointer;z-index:2000;font-size:0.9em;}
+    #show-info-button:hover{background-color:red;}
+    #splash-screen{position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;display:flex;align-items:center;justify-content:center;z-index:3000;opacity:1;transition:opacity 1s ease;}
+    #splash-screen img{max-width:80%;max-height:80%;object-fit:contain;}
   </style>
 </head>
 <body>
   <div id="splash-screen">
-    <img src="https://imgur.com/a/xYfAA1r" alt="スプラッシュ画像">
+    <img src="https://imgur.com/a/xYfAA1r" alt="スプラッシュ画像"/>
   </div>
 
   <button id="show-info-button" onclick="showInfoModal()">注意事項を再表示する</button>
 
-  <!-- モーダル群 -->
   <div id="info-modal" class="modal">
     <div class="modal-content">
       <h2>⚠️注意事項⚠️</h2>
-      <p>・一組につき一枚整理券を発行してください。<br>
-         ・整理券番号は1番から順に割り当てられます。<br>
-         ・整理券発行は1時間に1枚まで。<br>
-         ・キャンセルは受付まで。<br>
-         ・呼び出しに間に合わなかった場合も受付で対応。</p>
-      <label><input type="checkbox" id="dont-show-info-checkbox"> 次回から表示しない</label>
+      <p>
+        ・一組につき一枚整理券を発行してください。<br/>
+        ・整理券番号は1番から順に割り当てられます。<br/>
+        ・整理券の発行が上限に達した場合途中で新規整理券発行の受付を終了します。<br/>
+        ・整理券は1時間に1枚まで発行できます。<br/>
+        ・整理券発行後のキャンセルは受付までお越しください。<br/>
+        ・呼び出し中に間に合わなかった場合でも受付で対応いたします。
+      </p>
+      <label>
+        <input type="checkbox" id="dont-show-info-checkbox"/> 次回からこれを表示しない
+      </label><br/>
       <button onclick="closeInfoModal()">わかりました！</button>
     </div>
   </div>
@@ -101,15 +54,19 @@
   <div id="first-time-modal" class="modal">
     <div class="modal-content">
       <h2>初めて整理券を発行する方へ</h2>
-      <p>・「許可」を押すとLINEで通知が受け取れます。<br>・番号が近づいたら通知が届きます。<br>・わからない場合は受付まで。</p>
+      <p>
+        ・「許可」を押すとLINEで通知を受け取れます。<br/>
+        ・番号が近づいたら通知でお知らせします。<br/>
+        ・操作が分からない場合は受付へお尋ねください。
+      </p>
       <button onclick="closeFirstTimeModal()">わかりました！</button>
     </div>
   </div>
 
   <div id="closed-modal" class="modal">
     <div class="modal-content">
-      <h2>本日の新規整理券の発行は終了しました</h2>
-      <p>本日の整理券発行上限に達したため、新規受付は終了しました。</p>
+      <h2>本日の新規整理券発行を終了しました</h2>
+      <p>本日の整理券発行の上限に達したため、新規受付を終了いたしました。</p>
       <button onclick="closeClosedModal()">わかりました！</button>
     </div>
   </div>
@@ -124,130 +81,212 @@
 
   <script>
     const DISABLE_MS = 60 * 60 * 1000;
-    let userId = null, countdownInterval = null, overrideTime = null, isClosed = false;
+    let userId = null;
+    let countdownInterval = null;
+    let overrideTime = null;
+    let isClosed = false;
 
+    // 要素取得
     const splash = document.getElementById("splash-screen");
     const issueButton = document.getElementById("issue-button");
     const ticketNumEl = document.getElementById("ticket-number");
     const numberEl = document.getElementById("current-number");
-    const countdownEl = document.getElementById("countdown");
     const waitingInfo = document.getElementById("waiting-info");
+    const countdownEl = document.getElementById("countdown");
     const completeButton = document.getElementById("complete-button");
     const infoModal = document.getElementById("info-modal");
     const firstTimeModal = document.getElementById("first-time-modal");
     const closedModal = document.getElementById("closed-modal");
     const dontShowInfoCheckbox = document.getElementById("dont-show-info-checkbox");
 
+    // サイト起動時
     window.addEventListener("load", () => {
-      if (!localStorage.getItem("splashShown")) {
-        splash.style.display = "flex";
-        setTimeout(() => splash.style.opacity = 0, 1200);
-        setTimeout(() => {
-          splash.style.display = "none";
-          localStorage.setItem("splashShown", "true");
-          initAll();
-        }, 2700);
-      } else initAll();
+      setTimeout(hideSplash, 1500);
+      initializeLIFF();
     });
 
-    function initAll() {
-      initializeLIFF();
-      if (localStorage.getItem("dont-show-info") !== "true") showInfoModal();
-      if (!localStorage.getItem("firstTimeDone")) showFirstTimeModal();
+    // スプラッシュ画面非表示処理
+    function hideSplash() {
+      splash.style.opacity = "0";
+      setTimeout(() => splash.remove(), 1000);
     }
 
     async function initializeLIFF() {
       try {
-        await liff.init({ liffId: "xxxx", withLoginOnExternalBrowser: true });
-        if (!liff.isLoggedIn()) { sessionStorage.getItem("liffRedirected") ? showLoginFail() : (sessionStorage.setItem("liffRedirected","true"), liff.login({redirectUri:location.href})); return; }
-        userId = (await liff.getProfile()).userId;
-        await fetchTicketingStatus();
-        restoreTicketNumber();
-        disableButtonForRemainingTime();
-        fetchCurrentNumber();
-        setInterval(fetchCurrentNumber, 3000);
-      } catch { showLoginFail(); }
+        await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          userId = profile.userId;
+        }
+      } catch (err) {
+        console.error("LIFF 初期化に失敗:", err);
+      }
+      await postInit();
     }
 
-    function showLoginFail(){
-      document.getElementById("result").textContent = "ログイン失敗。LINEから開いてください。";
+    async function postInit() {
+      await fetchTicketingStatus();
+      restoreTicketNumber();
+      disableButtonForRemainingTime();
+      fetchCurrentNumber();
+      setInterval(fetchCurrentNumber, 3000);
     }
 
-    async function fetchTicketingStatus(){
-      try{
-        const res = await fetch("/api/ticketing-status"); isClosed = (await res.json()).closed;
-        isClosed ? openModal(closedModal) : closeModal(closedModal);
-        if(!isClosed && !overrideTime) issueButton.disabled = false, issueButton.classList.remove("disabled");
-      } catch { issueButton.disabled = false, issueButton.classList.remove("disabled"); }
+    async function fetchTicketingStatus() {
+      try {
+        const res = await fetch("/api/ticketing-status");
+        const data = await res.json();
+        isClosed = data.closed;
+        if (isClosed) {
+          openModal(closedModal);
+          issueButton.disabled = true;
+          issueButton.classList.add("disabled");
+        } else {
+          closeModal(closedModal);
+          if (!overrideTime) {
+            issueButton.disabled = false;
+            issueButton.classList.remove("disabled");
+          }
+        }
+      } catch {
+        issueButton.disabled = false;
+        issueButton.classList.remove("disabled");
+      }
     }
 
-    function openModal(m){ m.style.display = "flex"; }
-    function closeModal(m){ m.style.display = "none"; }
+    function openModal(modal) { modal.style.display = "flex"; }
+    function closeModal(modal) { modal.style.display = "none"; }
 
-    function showInfoModal(){ openModal(infoModal); dontShowInfoCheckbox.checked = false; }
-    function closeInfoModal(){
-      if(dontShowInfoCheckbox.checked) localStorage.setItem("dont-show-info","true");
+    function showInfoModal() {
+      openModal(infoModal);
+      dontShowInfoCheckbox.checked = false;
+    }
+    function closeInfoModal() {
+      if (dontShowInfoCheckbox.checked) {
+        localStorage.setItem("dont-show-info", "true");
+      }
       closeModal(infoModal);
     }
-    function showFirstTimeModal(){ openModal(firstTimeModal); }
-    function closeFirstTimeModal(){ localStorage.setItem("firstTimeDone","true"); closeModal(firstTimeModal); }
-    function closeClosedModal(){ closeModal(closedModal); }
+    function showFirstTimeModal() { openModal(firstTimeModal); }
+    function closeFirstTimeModal() {
+      localStorage.setItem("firstTimeDone", "true");
+      closeModal(firstTimeModal);
+    }
+    function closeClosedModal() { closeModal(closedModal); }
 
-    async function getTicket(){
-      if(isClosed) return;
-      localStorage.setItem("lastIssuedAt",Date.now()); overrideTime=null;
-      const res=await fetch("/api/ticket",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId})});
-      if(!res.ok){ ticketNumEl.textContent="発行失敗"; return; }
-      ticketNumEl.textContent=`${(await res.json()).number} 番`;
-      disableButtonForRemainingTime();
+    function restoreTicketNumber() {
+      const t = localStorage.getItem("ticketNumber");
+      if (t) ticketNumEl.textContent = `${t} 番`;
     }
 
-    function disableButtonForRemainingTime(){
-      const t0 = overrideTime || parseInt(localStorage.getItem("lastIssuedAt")||"0");
-      const dt=DISABLE_MS-(Date.now()-t0);
-      if(dt>0||isClosed){
-        issueButton.disabled=true; issueButton.classList.add("disabled");
-        if(!isClosed){ startCountdown(dt); setTimeout(()=>disableButtonForRemainingTime(),dt); }
+    function disableButtonForRemainingTime() {
+      const base = overrideTime || parseInt(localStorage.getItem("lastIssuedAt") || "0");
+      const remain = DISABLE_MS - (Date.now() - base);
+
+      if (remain > 0 || isClosed) {
+        issueButton.disabled = true;
+        issueButton.classList.add("disabled");
+        clearTimeout(issueButton._timeout);
+        if (remain > 0) {
+          startCountdown(remain);
+          issueButton._timeout = setTimeout(disableButtonForRemainingTime, remain);
+        }
       } else {
-        issueButton.disabled=false; issueButton.classList.remove("disabled");
+        issueButton.disabled = false;
+        issueButton.classList.remove("disabled");
+        countdownEl.textContent = "";
       }
     }
 
-    function startCountdown(ms){
+    function startCountdown(ms) {
       clearInterval(countdownInterval);
-      const tick=()=>{
-        const m=Math.floor(ms/60000), s=Math.floor((ms%60000)/1000);
-        countdownEl.textContent=`あと ${m}分 ${s}秒 後に再発行できます`;
-        if(ms<=0){ clearInterval(countdownInterval); countdownEl.textContent=""; }
-        ms-=1000;
-      };
-      tick(); countdownInterval=setInterval(tick,1000);
-    }
-
-    function restoreTicketNumber(){ const val=localStorage.getItem("ticketNumber"); if(val) ticketNumEl.textContent=`${val} 番`; }
-
-    async function fetchCurrentNumber(){
-      try{
-        const current=(await fetch("/api/number").then(r=>r.json())).number;
-        numberEl.textContent=current;
-        const mine=parseInt(localStorage.getItem("ticketNumber"));
-        if(isNaN(mine)) return;
-        const diff=mine - current;
-        waitingInfo.textContent = diff<=0? "順番です！今すぐ受付までお越しください！"
-                         : diff<=5? "もうすぐ順番です。受付までお越しください！"
-                         : diff<=10? "順番が近づいてきています。こまめにチェックしてください！"
-                         : "<br>番号を気にしながら、他の場所をお楽しみください。";
-        waitingInfo.style.color = diff<=5? "red" : diff<=10? "orange" : "lightgreen";
-        completeButton.style.display = (diff===0? "inline-block" : "none");
-      }catch(e){}
-    }
-
-    function confirmComplete(){
-      if(confirm("このボタンの処理は受付以外の人が行った場合この整理券は無効になります。受付の指示があった場合のみ押してください。")){
-        fetch("/api/complete", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ userId, ticketNumber: parseInt(localStorage.getItem("ticketNumber")) }) });
-        alert("受付完了しました。");
-        completeButton.style.display="none";
+      function tick() {
+        if (ms <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = "";
+          return;
+        }
+        const m = Math.floor(ms / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        countdownEl.textContent = `あと ${m}分 ${s}秒 後に再発行できます`;
+        ms -= 1000;
       }
+      tick();
+      countdownInterval = setInterval(tick, 1000);
+    }
+
+    async function getTicket() {
+      if (isClosed) return;
+      overrideTime = null;
+      localStorage.setItem("lastIssuedAt", Date.now());
+      try {
+        const res = await fetch("/api/ticket", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+        if (!res.ok) throw new Error("発行失敗");
+        const data = await res.json();
+        ticketNumEl.textContent = `${data.number} 番`;
+        localStorage.setItem("ticketNumber", data.number);
+        disableButtonForRemainingTime();
+      } catch {
+        alert("整理券の発行に失敗しました。受付までお越しください。");
+      }
+    }
+
+    async function fetchCurrentNumber() {
+      try {
+        const res = await fetch("/api/number");
+        const data = await res.json();
+        const cur = parseInt(data.number);
+        numberEl.textContent = cur;
+        updateWaitingInfo(cur, parseInt(localStorage.getItem("ticketNumber")));
+      } catch {
+        numberEl.textContent = "取得失敗";
+      }
+    }
+
+    function updateWaitingInfo(current, my) {
+      if (isNaN(current) || isNaN(my)) {
+        waitingInfo.textContent = "";
+        completeButton.style.display = "none";
+        return;
+      }
+      const diff = my - current;
+      if (diff === 0) {
+        waitingInfo.textContent = "順番です！今すぐ受付までお越しください！";
+        waitingInfo.style.color = "red";
+        completeButton.style.display = "inline-block";
+      } else if (diff > 0 && diff <= 5) {
+        waitingInfo.textContent = "もうすぐ順番です。受付までお越しください！";
+        waitingInfo.style.color = "red";
+        completeButton.style.display = "none";
+      } else if (diff <= 10) {
+        waitingInfo.textContent = "順番が近づいてきています。こまめにチェックしてください！";
+        waitingInfo.style.color = "orange";
+        completeButton.style.display = "none";
+      } else {
+        waitingInfo.textContent = "番号を気にしながら、他の場所をお楽しみください。";
+        waitingInfo.style.color = "lightgreen";
+        completeButton.style.display = "none";
+      }
+    }
+
+    function confirmComplete() {
+      if (!confirm("このボタンの処理は受付以外の人が行った場合この整理券は無効になります。受付の指示があった場合のみ押してください。")) {
+        return;
+      }
+      fetch("/api/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          ticketNumber: parseInt(localStorage.getItem("ticketNumber")),
+        }),
+      });
+      alert("受付完了しました。");
+      completeButton.style.display = "none";
     }
   </script>
 </body>
