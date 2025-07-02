@@ -245,11 +245,13 @@
       fetchCurrentNumber();
       setInterval(fetchCurrentNumber, 3000);
 
-      if (!localStorage.getItem("firstTimeDone")) {
-        showFirstTimeModal();
-      }
+     const firstTimeDone = localStorage.getItem("firstTimeDone");
+console.log("firstTimeDone=", firstTimeDone);
+if (!firstTimeDone) {
+  showFirstTimeModal();
+}
 
-      if (localStorage.getItem("dont-show-info") !== "true") {
+  　  if (localStorage.getItem("dont-show-info") !== "true") {
         showInfoModal();
       }
 
@@ -324,9 +326,13 @@
       openModal(firstTimeModal);
     }
     function closeFirstTimeModal() {
-      localStorage.setItem("firstTimeDone", "true");
-      closeModal(firstTimeModal);
-    }
+  try {
+    localStorage.setItem("firstTimeDone", "true");
+  } catch(e) {
+    console.error("localStorage書き込みエラー:", e);
+  }
+  closeModal(firstTimeModal);
+}
     function closeClosedModal() {
       closeModal(closedModal);
     }
