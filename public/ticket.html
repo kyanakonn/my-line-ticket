@@ -194,6 +194,7 @@
     let countdownInterval = null;
     let overrideTime = null;
     let isClosed = false;
+    let checkUnlockInterval = null;
 
     const splash = document.getElementById("splash-screen");
     const issueButton = document.getElementById("issue-button");
@@ -245,6 +246,36 @@
 
       if (localStorage.getItem("dont-show-info") !== "true") {
         showInfoModal();
+      }
+
+      // 追加: 制限解除状態を定期的にチェック
+      if (checkUnlockInterval) clearInterval(checkUnlockInterval);
+      checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
+      await checkLimitUnlockStatus();
+    }
+
+    // 追加: 制限解除状態をサーバーに問い合わせて反映
+    async function checkLimitUnlockStatus() {
+      if (!userId) return; // userIdが無ければ無視
+      try {
+        const res = await fetch("/api/check-unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+        if (!res.ok) throw new Error("解除状態取得失敗");
+        const data = await res.json();
+        if (data.unlocked) {
+          // 制限解除状態なら制限時間の判定解除
+          overrideTime = 0; // フラグとして使う
+          localStorage.removeItem("lastIssuedAt");
+          issueButton.disabled = false;
+          issueButton.classList.remove("disabled");
+          countdownEl.textContent = "";
+          if (countdownInterval) clearInterval(countdownInterval);
+        }
+      } catch (err) {
+        console.error("解除状態チェック失敗:", err);
       }
     }
 
