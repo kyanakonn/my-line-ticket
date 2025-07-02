@@ -259,6 +259,13 @@
     showInfoModal();
   }
 
+  if (checkUnlockInterval) clearInterval(checkUnlockInterval);
+  checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
+  await checkLimitUnlockStatus();
+
+  hideSplash();
+}
+
     async function checkLimitUnlockStatus() {
       if (!userId) return;
       try {
