@@ -189,7 +189,7 @@
           tdTime.textContent = new Date(item.timestamp).toLocaleString();
 
           const tdComplete = document.createElement("td");
-          tdComplete.textContent = item.completed ? "✔ 完了" : "— 未完了";
+          tdComplete.textContent = item.completed ? "完了" : "— 未完了";
           tdComplete.style.color = item.completed ? "green" : "gray";
 
           row.appendChild(tdNumber);
