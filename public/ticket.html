@@ -129,6 +129,7 @@
   <div id="missed-info" style="margin-top:1em;color:orange;font-size:1em;"></div>
 
 <script>
+<script>
 const splash = document.getElementById("splash-screen");
 const issueButton = document.getElementById("issue-button");
 const ticketNumEl = document.getElementById("ticket-number");
@@ -180,9 +181,11 @@ async function postInit() {
   fetchCurrentNumber();
   setInterval(fetchCurrentNumber, 3000);
 
+  // 初めての方へモーダルは localStorage の値で表示判定
   if (localStorage.getItem("firstTimeDone") !== "true") {
     showFirstTimeModal();
   }
+  // 注意事項モーダルは localStorage の値で表示判定
   if (localStorage.getItem("dont-show-info") !== "true") {
     showInfoModal();
   }
@@ -193,11 +196,12 @@ async function postInit() {
 }
 
 function showInfoModal() {
-  dontShowInfoCheckbox.checked = false;
+  dontShowInfoCheckbox.checked = false;  // 毎回リセット
   infoModal.style.display = "flex";
 }
 
 function closeInfoModal() {
+  // チェックボックスがONなら次回以降表示しない設定を保存
   if (dontShowInfoCheckbox.checked) {
     localStorage.setItem("dont-show-info", "true");
   }
@@ -209,6 +213,7 @@ function showFirstTimeModal() {
 }
 
 function closeFirstTimeModal() {
+  // 「初めての方へ」は閉じたら必ず次回から表示しない設定を保存
   localStorage.setItem("firstTimeDone", "true");
   firstTimeModal.style.display = "none";
 }
@@ -401,6 +406,8 @@ function confirmComplete() {
   completeButton.style.display = "none";
   completeNote.style.display = "none";
 }
+</script>
+
 
   </script>
 </body>
