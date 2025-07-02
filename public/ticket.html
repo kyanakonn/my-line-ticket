@@ -135,7 +135,7 @@
 </head>
 <body>
   <div id="splash-screen">
-    <img src="https://imgur.com/a/xYfAA1r" alt="スプラッシュ画像"/>
+    <img src="https://d.kuku.lu/enruhh7kv" alt="スプラッシュ画像"/>
   </div>
 
   <button id="show-info-button" onclick="showInfoModal()">注意事項を再表示する</button>
@@ -248,15 +248,15 @@
         showInfoModal();
       }
 
-      // 追加: 制限解除状態を定期的にチェック
+      ク
       if (checkUnlockInterval) clearInterval(checkUnlockInterval);
       checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
       await checkLimitUnlockStatus();
     }
 
-    // 追加: 制限解除状態をサーバーに問い合わせて反映
+   
     async function checkLimitUnlockStatus() {
-      if (!userId) return; // userIdが無ければ無視
+      if (!userId) return; 
       try {
         const res = await fetch("/api/check-unlock", {
           method: "POST",
@@ -266,8 +266,8 @@
         if (!res.ok) throw new Error("解除状態取得失敗");
         const data = await res.json();
         if (data.unlocked) {
-          // 制限解除状態なら制限時間の判定解除
-          overrideTime = 0; // フラグとして使う
+          
+          overrideTime = 0; 
           localStorage.removeItem("lastIssuedAt");
           issueButton.disabled = false;
           issueButton.classList.remove("disabled");
