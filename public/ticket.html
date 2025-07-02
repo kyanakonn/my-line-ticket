@@ -53,12 +53,12 @@
       color: black;
       border: none;
       border-radius: 5px;
-      padding: 0.5em 1em;
+      padding: 0.5em 1.5em;
       cursor: pointer;
     }
     button {
-      font-size: 1em;
-      padding: 0.5em 1.2em;
+      font-size: 1.2em;
+      padding: 0.7em 2em;
       margin: 0.5em;
       background-color: red;
       color: black;
@@ -127,8 +127,8 @@
       transition: opacity 1s ease;
     }
     #splash-screen img {
-      max-width: 80%;
-      max-height: 80%;
+      max-width: 95vw;
+      max-height: 95vh;
       object-fit: contain;
     }
   </style>
@@ -248,13 +248,11 @@
         showInfoModal();
       }
 
-      ク
       if (checkUnlockInterval) clearInterval(checkUnlockInterval);
       checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
       await checkLimitUnlockStatus();
     }
 
-   
     async function checkLimitUnlockStatus() {
       if (!userId) return; 
       try {
@@ -266,7 +264,6 @@
         if (!res.ok) throw new Error("解除状態取得失敗");
         const data = await res.json();
         if (data.unlocked) {
-          
           overrideTime = 0; 
           localStorage.removeItem("lastIssuedAt");
           issueButton.disabled = false;
