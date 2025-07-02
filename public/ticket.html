@@ -53,7 +53,7 @@
       color: black;
       border: none;
       border-radius: 5px;
-      padding: 0.5em 1.5em;
+      padding: 0.5em 1em;
       cursor: pointer;
     }
     button {
@@ -97,6 +97,10 @@
       color: red;
       text-align: center;
     }
+    .modal-content button {
+      font-size: 0.9em;
+      padding: 0.4em 1em;
+    }
     #show-info-button {
       position: fixed;
       top: 10px;
@@ -134,6 +138,7 @@
   </style>
 </head>
 <body>
+
   <div id="splash-screen">
     <img src="https://i.imgur.com/oqNQa51.jpeg" alt="スプラッシュ画像"/>
   </div>
@@ -254,7 +259,7 @@
     }
 
     async function checkLimitUnlockStatus() {
-      if (!userId) return; 
+      if (!userId) return;
       try {
         const res = await fetch("/api/check-unlock", {
           method: "POST",
@@ -264,7 +269,7 @@
         if (!res.ok) throw new Error("解除状態取得失敗");
         const data = await res.json();
         if (data.unlocked) {
-          overrideTime = 0; 
+          overrideTime = 0;
           localStorage.removeItem("lastIssuedAt");
           issueButton.disabled = false;
           issueButton.classList.remove("disabled");
