@@ -77,36 +77,33 @@
 
   <button id="show-info-button" onclick="showInfoModal()">注意事項を再表示する</button>
 
-<div id="info-modal" class="modal">
-  <div class="modal-content">
-    <h2>⚠️注意事項⚠️</h2>
-    <p>
-      ・一組につき一枚整理券を発行してください。<br/>
-      ・整理券番号は1番から順に割り当てられます。<br/>
-      ・整理券の発行が上限に達した場合途中で新規整理券発行の受付を終了します。<br/>
-      ・整理券は1時間に1枚まで発行できます。<br/>
-      ・整理券発行後のキャンセルは受付までお越しください。<br/>
-      ・呼び出し中に間に合わなかった場合でも受付で対応いたします。
-    </p>
-    <label><input type="checkbox" id="dont-show-info-checkbox"/> 次回からこれを表示しない</label><br/>
-    <button onclick="closeInfoModal()">わかりました！</button>
+  <div id="info-modal" class="modal">
+    <div class="modal-content">
+      <h2>⚠️注意事項⚠️</h2>
+      <p>
+        ・一組につき一枚整理券を発行してください。<br/>
+        ・整理券番号は1番から順に割り当てられます。<br/>
+        ・整理券の発行が上限に達した場合途中で新規整理券発行の受付を終了します。<br/>
+        ・整理券は1時間に1枚まで発行できます。<br/>
+        ・整理券発行後のキャンセルは受付までお越しください。<br/>
+        ・呼び出し中に間に合わなかった場合でも受付で対応いたします。
+      </p>
+      <label><input type="checkbox" id="dont-show-info-checkbox"/> 次回からこれを表示しない</label><br/>
+      <button onclick="closeInfoModal()">わかりました！</button>
+    </div>
   </div>
-</div>
 
-
-<div id="first-time-modal" class="modal">
-  <div class="modal-content">
-    <h2>初めて整理券を発行する方へ</h2>
-    <p>
-      ・「許可」を押すとLINEで通知を受け取れます。<br/>
-      ・番号が近づいたら通知でお知らせします。<br/>
-      ・操作が分からない場合は受付へお尋ねください。
-    </p>
-    <button onclick="closeFirstTimeModal()">わかりました！</button>
+  <div id="first-time-modal" class="modal">
+    <div class="modal-content">
+      <h2>初めて整理券を発行する方へ</h2>
+      <p>
+        ・「許可」を押すとLINEで通知を受け取れます。<br/>
+        ・番号が近づいたら通知でお知らせします。<br/>
+        ・操作が分からない場合は受付へお尋ねください。
+      </p>
+      <button onclick="closeFirstTimeModal()">わかりました！</button>
+    </div>
   </div>
-</div>
-
-  
 
   <div id="closed-modal" class="modal">
     <div class="modal-content">
@@ -195,7 +192,8 @@ async function postInit() {
 }
 
 function showInfoModal() {
-  dontShowInfoCheckbox.checked = false;  // 毎回リセット
+  // チェック状態を localStorage から復元するように変更
+  dontShowInfoCheckbox.checked = (localStorage.getItem("dont-show-info") === "true");
   infoModal.style.display = "flex";
 }
 
@@ -203,6 +201,8 @@ function closeInfoModal() {
   // チェックボックスがONなら次回以降表示しない設定を保存
   if (dontShowInfoCheckbox.checked) {
     localStorage.setItem("dont-show-info", "true");
+  } else {
+    localStorage.removeItem("dont-show-info");
   }
   infoModal.style.display = "none";
 }
@@ -405,6 +405,7 @@ function confirmComplete() {
   completeButton.style.display = "none";
   completeNote.style.display = "none";
 }
-  </script>
+</script>
+
 </body>
 </html>
