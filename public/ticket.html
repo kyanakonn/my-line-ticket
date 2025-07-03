@@ -377,6 +377,7 @@ function updateWaitingInfo(current, my) {
 }
 function confirmComplete() {
   if (!confirm("このボタンの処理は受付以外で操作を行った場合この整理券は無効になります。")) return;
+
   fetch("/api/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -385,11 +386,15 @@ function confirmComplete() {
       ticketNumber: parseInt(localStorage.getItem("ticketNumber")),
     }),
   });
+
   alert("受付完了しました。");
   localStorage.setItem("completed", "true");
-  completeButton.style.display = "none";
-  completeNote.style.display = "none";
+
+ 
+  if (completeButton) completeButton.remove();
+  if (completeNote) completeNote.remove();
 }
+
 </script>
 </body>
 </html>
