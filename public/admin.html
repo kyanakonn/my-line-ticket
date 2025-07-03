@@ -301,17 +301,31 @@
     }
 
     async function resetAll() {
-      if (!confirm("本当にすべての整理券番号と記録をリセットしますか？")) return;
-      try {
-        const res = await fetch("/api/reset", { method: "POST", headers: { "Content-Type": "application/json" } });
-        const data = await res.json();
-        document.getElementById("reset-message").textContent = res.ok ? "リセットに成功しました。" : data.message || "リセットに失敗しました。";
-        refreshAll();
-      } catch (err) {
-        document.getElementById("reset-message").textContent = "リセット処理中にエラーが発生しました。";
-        console.error(err);
-      }
-    }
+  if (!confirm("本当にすべての整理券番号と記録をリセットしますか？")) return;
+  try {
+   
+    const res = await fetch("/api/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    
+    await fetch("/api/reset-all", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    const data = await res.json();
+    document.getElementById("reset-message").textContent =
+      res.ok ? "リセットに成功しました。" : data.message || "リセットに失敗しました。";
+
+    refreshAll();
+  } catch (err) {
+    document.getElementById("reset-message").textContent =
+      "リセット処理中にエラーが発生しました。";
+    console.error(err);
+  }
+}
 
     async function closeTicketing() {
       if (!confirm("本日の新規整理券発行を終了しますか？")) return;
