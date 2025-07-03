@@ -60,9 +60,7 @@
 
     #status-message span {
       display: inline-block;
-      padding-left: 100%;
       will-change: transform;
-      transform: translateX(100%);
     }
 
     canvas#blood-canvas {
@@ -177,11 +175,14 @@
     function scrollStatusText(text) {
       const span = document.querySelector('#status-message span');
       span.textContent = text;
+
+      const parentWidth = span.parentElement.offsetWidth;
+
+      // 直後だと描画が終わっておらず width = 0 の可能性があるので強制再描画
       span.style.transition = 'none';
-      span.style.transform = 'translateX(100%)';
+      span.style.transform = `translateX(${parentWidth}px)`;
 
       requestAnimationFrame(() => {
-        const parentWidth = span.parentElement.offsetWidth;
         const textWidth = span.offsetWidth;
         const totalDistance = parentWidth + textWidth;
         const speed = 100; // px per second
