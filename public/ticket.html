@@ -108,7 +108,7 @@
   <div id="closed-modal" class="modal">
     <div class="modal-content">
       <h2>本日の新規整理券発行を終了しました</h2>
-      <p>本日の整理券発行の上限に達したため、新規受付を終了いたしました。</p>
+      <p>本日の整理券発行が上限に達したため、新規受付を終了いたしました。</p>
       <button onclick="closeClosedModal()">わかりました！</button>
     </div>
   </div>
@@ -345,7 +345,7 @@ function updateWaitingInfo(current, my) {
   if ((diff >= 0 && diff <= 5) || (diff < 0 && !completed)) {
     
     if (diff === 0) {
-      waitingInfo.textContent = "順番です！今すぐ受付までお越しください！";
+      waitingInfo.textContent = "順番です！準備をしてください！";
       waitingInfo.style.color = "red";
     } else if (diff > 0) {
       waitingInfo.textContent = "もうすぐ順番です。受付までお越しください！";
@@ -373,7 +373,7 @@ function updateWaitingInfo(current, my) {
   }
 }
 function confirmComplete() {
-  if (!confirm("このボタンの処理は受付以外の人が行った場合この整理券は無効になります。受付の指示があった場合のみ押してください。")) return;
+  if (!confirm("このボタンの処理は受付以外で操作を行った場合この整理券は無効になります。")) return;
   fetch("/api/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
