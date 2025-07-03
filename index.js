@@ -9,7 +9,7 @@ app.use(express.static("public"));
 
 let currentTicket = 1;
 let currentNumber = 0;
-let ticketLog = []; // { number, timestamp, userId, completed, limitUnlocked }
+let ticketLog = [];
 let isTicketingClosed = false;
 let resetFlag = false; 
 
@@ -121,10 +121,11 @@ app.post("/api/reset", (req, res) => {
   res.json({ message: "呼び出し番号と整理券番号、発行ログをリセットしました。" });
 });
 
-
 app.get("/api/reset-status", (req, res) => {
   res.json({ reset: resetFlag });
-
+  if (resetFlag) {
+    resetFlag = false; 
+  }
 });
 
 app.get("/api/ticketing-status", (req, res) => res.json({ closed: isTicketingClosed }));
