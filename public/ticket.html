@@ -146,6 +146,8 @@ let countdownInterval = null;
 let overrideTime = null;
 let isClosed = false;
 let checkUnlockInterval = null;
+let checkResetInterval = null;
+let resetAlreadyHandled = false;
 
 window.addEventListener("load", () => {
   if (localStorage.getItem("splashDone") === "true") {
@@ -193,6 +195,10 @@ async function postInit() {
   if (checkUnlockInterval) clearInterval(checkUnlockInterval);
   checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
   await checkLimitUnlockStatus();
+  if (checkResetInterval) clearInterval(checkResetInterval);
+checkResetInterval = setInterval(checkResetStatus, 5000);
+await checkResetStatus();
+
 }
 
 function showInfoModal() {
@@ -402,6 +408,23 @@ function confirmComplete() {
  
   if (completeButton) completeButton.remove();
   if (completeNote) completeNote.remove();
+}
+async function checkResetStatus() {
+  if (resetAlreadyHandled) return;
+
+  try {
+    const res = await fetch("/api/reset-status");
+    const data = await res.json();
+
+    if (data.reset) {
+      console.log("管理者によるリセット検知：localStorage を削除します");
+      localStorage.clear();
+      resetAlreadyHandled = true;
+      location.reload();
+    }
+  } catch (err) {
+    console.error("リセット状態の確認に失敗しました:", err);
+  }
 }
 
 </script>
