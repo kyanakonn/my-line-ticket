@@ -11,7 +11,7 @@ let currentTicket = 1;
 let currentNumber = 0;
 let ticketLog = [];
 let isTicketingClosed = false;
-let resetFlag = false; 
+let resetFlag = false;
 
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
 const LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push";
@@ -104,9 +104,10 @@ app.post("/api/unlock-limit", (req, res) => {
   res.json({ success: true });
 });
 
+// ✅ 修正済み：最新の整理券（逆順検索）を確認
 app.post("/api/check-unlock", (req, res) => {
   const { userId } = req.body;
-  const entry = ticketLog.find(t => t.userId === userId);
+  const entry = ticketLog.slice().reverse().find(t => t.userId === userId);
   res.json({ unlocked: entry?.limitUnlocked || false });
 });
 
@@ -115,16 +116,14 @@ app.post("/api/reset", (req, res) => {
   currentTicket = 1;
   ticketLog = [];
   isTicketingClosed = false;
-
-  resetFlag = true;  
-
+  resetFlag = true;
   res.json({ message: "呼び出し番号と整理券番号、発行ログをリセットしました。" });
 });
 
 app.get("/api/reset-status", (req, res) => {
   res.json({ reset: resetFlag });
   if (resetFlag) {
-    resetFlag = false; 
+    resetFlag = false;
   }
 });
 
