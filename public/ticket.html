@@ -341,16 +341,22 @@ function updateWaitingInfo(current, my) {
   }
   const completed = localStorage.getItem("completed") === "true";
   const diff = my - current;
-  if (diff === 0 && !completed) {
-    waitingInfo.textContent = "順番です！今すぐ受付までお越しください！";
-    waitingInfo.style.color = "red";
+
+  if ((diff >= 0 && diff <= 5) || (diff < 0 && !completed)) {
+    
+    if (diff === 0) {
+      waitingInfo.textContent = "順番です！今すぐ受付までお越しください！";
+      waitingInfo.style.color = "red";
+    } else if (diff > 0) {
+      waitingInfo.textContent = "もうすぐ順番です。受付までお越しください！";
+      waitingInfo.style.color = "red";
+    } else {
+      waitingInfo.textContent = "";
+      missedInfo.innerHTML = `受付で ${my} 番の番号のお客様を確認できなかったため、次の番号のお客様をお呼びしました。<br/>受付までお越しくだされば対応いたします。`;
+    }
     completeButton.style.display = "inline-block";
     completeNote.style.display = "block";
-  } else if (diff > 0 && diff <= 5) {
-    waitingInfo.textContent = "もうすぐ順番です。受付までお越しください！";
-    waitingInfo.style.color = "red";
-    completeButton.style.display = "none";
-  } else if (diff <= 10 && diff > 0) {
+  } else if (diff <= 10 && diff > 5) {
     waitingInfo.textContent = "順番が近づいてきています。こまめにチェックしてください！";
     waitingInfo.style.color = "orange";
     completeButton.style.display = "none";
@@ -359,9 +365,6 @@ function updateWaitingInfo(current, my) {
     if (completed) {
       waitingInfo.textContent = "ご利用いただきありがとうございました！";
       waitingInfo.style.color = "lightblue";
-    } else {
-      waitingInfo.textContent = "";
-      missedInfo.innerHTML = `受付で ${my} 番の番号のお客様を確認できなかったため、次の番号のお客様をお呼びしました。<br/>受付までお越しくだされば対応いたします。`;
     }
   } else {
     waitingInfo.textContent = "番号を気にしながら、他の場所をお楽しみください。";
