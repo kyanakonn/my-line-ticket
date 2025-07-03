@@ -337,28 +337,36 @@ async function fetchCurrentNumber() {
 function updateWaitingInfo(current, my) {
   missedInfo.textContent = "";
   completeNote.style.display = "none";
+
   if (isNaN(current) || isNaN(my)) {
     waitingInfo.textContent = "";
     completeButton.style.display = "none";
     return;
   }
+
   const completed = localStorage.getItem("completed") === "true";
   const diff = my - current;
 
   if ((diff >= 0 && diff <= 5) || (diff < 0 && !completed)) {
-    
     if (diff === 0) {
       waitingInfo.textContent = "順番です！準備をしてください！";
       waitingInfo.style.color = "red";
-    } else if (diff > 0) {
+    } else if (diff > 0 && !completed) {
       waitingInfo.textContent = "もうすぐ順番です。受付までお越しください！";
       waitingInfo.style.color = "red";
+    } else if (diff > 0 && completed) {
+      waitingInfo.textContent = "受付が完了しました！呼び出しがあるまで近くでお待ちください。";
+      waitingInfo.style.color = "lightblue";
     } else {
       waitingInfo.textContent = "";
       missedInfo.innerHTML = `受付で ${my} 番の番号のお客様を確認できなかったため、次の番号のお客様をお呼びしました。<br/>受付までお越しくだされば対応いたします。`;
     }
-    completeButton.style.display = "inline-block";
-    completeNote.style.display = "block";
+    if (!completed) {
+      completeButton.style.display = "inline-block";
+      completeNote.style.display = "block";
+    } else {
+      completeButton.style.display = "none";
+    }
   } else if (diff <= 10 && diff > 5) {
     waitingInfo.textContent = "順番が近づいてきています。こまめにチェックしてください！";
     waitingInfo.style.color = "orange";
@@ -375,6 +383,7 @@ function updateWaitingInfo(current, my) {
     completeButton.style.display = "none";
   }
 }
+
 function confirmComplete() {
   if (!confirm("このボタンの処理は受付以外で操作を行った場合この整理券は無効になります。")) return;
 
