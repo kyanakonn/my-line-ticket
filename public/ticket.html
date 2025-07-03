@@ -224,7 +224,6 @@ async function checkLimitUnlockStatus() {
     const data = await res.json();
     if (data.unlocked) {
       overrideTime = 0;
-      localStorage.removeItem("lastIssuedAt");
       issueButton.disabled = false;
       issueButton.classList.remove("disabled");
       countdownEl.textContent = "";
