@@ -61,12 +61,8 @@
     #status-message span {
       display: inline-block;
       padding-left: 100%;
-      animation: slideText 15s linear infinite;
-    }
-
-    @keyframes slideText {
-      0%   { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
+      will-change: transform;
+      transform: translateX(100%);
     }
 
     canvas#blood-canvas {
@@ -88,7 +84,6 @@
 
   <script>
     const numberEl = document.getElementById('number');
-    const statusMessageEl = document.querySelector('#status-message span');
     const canvas = document.getElementById('blood-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -179,18 +174,41 @@
       }
     }
 
+    function scrollStatusText(text) {
+      const span = document.querySelector('#status-message span');
+      span.textContent = text;
+      span.style.transition = 'none';
+      span.style.transform = 'translateX(100%)';
+
+      requestAnimationFrame(() => {
+        const parentWidth = span.parentElement.offsetWidth;
+        const textWidth = span.offsetWidth;
+        const totalDistance = parentWidth + textWidth;
+        const speed = 100; // px per second
+        const duration = totalDistance / speed;
+
+        span.style.transition = `transform ${duration}s linear`;
+        span.style.transform = `translateX(-${textWidth}px)`;
+
+        setTimeout(() => {
+          scrollStatusText(text);
+        }, duration * 1000);
+      });
+    }
+
     async function checkTicketingStatus() {
       try {
         const res = await fetch('/api/ticketing-status');
         if (!res.ok) throw new Error('status error');
         const data = await res.json();
         if (data.closed) {
-          statusMessageEl.textContent = 'ご好評につき本日の新規整理券発行の受付は終了しました！';
+          scrollStatusText('ご盛況につき本日の整理券の発行上限に達したため新規整理券発行の受付は終了しました！');
         } else {
-          statusMessageEl.textContent = '2年D組「廃校へ、はい行こう」新規整理券の発行受付中！';
+          scrollStatusText('2年D組「廃校へ、はい行こう」新規整理券の発行受付中！受付は整理券発行ページのQRコードから！');
         }
       } catch (err) {
-        statusMessageEl.textContent = '状態確認エラー';
+        const span = document.querySelector('#status-message span');
+        span.textContent = '状態確認エラー';
         console.error("発行状態の取得に失敗しました");
       }
     }
