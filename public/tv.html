@@ -178,7 +178,6 @@
 
       const parentWidth = span.parentElement.offsetWidth;
 
-      // 直後だと描画が終わっておらず width = 0 の可能性があるので強制再描画
       span.style.transition = 'none';
       span.style.transform = `translateX(${parentWidth}px)`;
 
@@ -193,7 +192,7 @@
 
         setTimeout(() => {
           scrollStatusText(text);
-        }, duration * 1000);
+        }, duration * 1000 + 1000); // ← +1秒の余裕を追加
       });
     }
 
