@@ -28,8 +28,15 @@ app.post("/webhook", async (req, res) => {
   try {
     await axios.post(LINE_REPLY_URL, {
       replyToken,
-      messages: [{ type: "text", text: `整理券はこちらから発行できます：\nhttps://.../ticket.html` }]
-    }, { headers: { Authorization: `Bearer ${LINE_ACCESS_TOKEN}` } });
+      messages: [
+        {
+          type: "text",
+          text: `整理券はこちらから発行できます：\nhttps://.../ticket.html`,
+        },
+      ],
+    }, {
+      headers: { Authorization: `Bearer ${LINE_ACCESS_TOKEN}` },
+    });
     res.status(200).send("OK");
   } catch (err) {
     console.error("LINE送信失敗:", err.response?.data || err.message);
@@ -38,7 +45,9 @@ app.post("/webhook", async (req, res) => {
 });
 
 app.post("/api/ticket", (req, res) => {
-  if (isTicketingClosed) return res.status(403).json({ message: "本日の新規整理券の発行は終了しました。" });
+  if (isTicketingClosed) {
+    return res.status(403).json({ message: "本日の新規整理券の発行は終了しました。" });
+  }
   const { userId } = req.body;
   const ticketNumber = currentTicket++;
   ticketLog.push({
@@ -46,12 +55,14 @@ app.post("/api/ticket", (req, res) => {
     timestamp: Date.now(),
     userId: userId || null,
     completed: false,
-    limitUnlocked: false
+    limitUnlocked: false,
   });
   res.json({ number: ticketNumber });
 });
 
-app.get("/api/number", (req, res) => res.json({ number: currentNumber }));
+app.get("/api/number", (req, res) => {
+  res.json({ number: currentNumber });
+});
 
 app.post("/api/call", (req, res) => {
   const diff = typeof req.body.diff === "number" ? req.body.diff : 1;
@@ -61,25 +72,42 @@ app.post("/api/call", (req, res) => {
 
 app.post("/api/set", (req, res) => {
   const { number } = req.body;
-  if (typeof number !== "number" || number < 0) return res.status(400).json({ message: "無効な番号です。" });
+  if (typeof number !== "number" || number < 0) {
+    return res.status(400).json({ message: "無効な番号です。" });
+  }
   currentNumber = number;
   res.json({ message: `呼び出し番号を ${currentNumber} に設定しました。` });
 });
 
-app.get("/api/ticket/last", (req, res) => res.json({ last: currentTicket - 1 }));
+app.get("/api/ticket/last", (req, res) => {
+  res.json({ last: currentTicket - 1 });
+});
 
-app.get("/api/ticket/log", (req, res) => res.json(ticketLog));
+app.get("/api/ticket/log", (req, res) => {
+  res.json(ticketLog);
+});
 
 app.post("/api/notify", async (req, res) => {
   const { number, message } = req.body;
-  if (typeof number !== "number" || number <= 0) return res.status(400).json({ message: "無効な整理券番号です。" });
+  if (typeof number !== "number" || number <= 0) {
+    return res.status(400).json({ message: "無効な整理券番号です。" });
+  }
   const entry = ticketLog.find(t => t.number === number);
-  if (!entry?.userId) return res.status(404).json({ message: `整理券番号 ${number} のユーザー情報が見つかりません。` });
+  if (!entry?.userId) {
+    return res.status(404).json({ message: `整理券番号 ${number} のユーザー情報が見つかりません。` });
+  }
   try {
     await axios.post(LINE_PUSH_URL, {
       to: entry.userId,
-      messages: [{ type: "text", text: message || `【手動通知】整理券番号 ${number} の方、まもなく順番です。` }]
-    }, { headers: { Authorization: `Bearer ${LINE_ACCESS_TOKEN}` } });
+      messages: [
+        {
+          type: "text",
+          text: message || `【手動通知】整理券番号 ${number} の方、まもなく順番です。`,
+        },
+      ],
+    }, {
+      headers: { Authorization: `Bearer ${LINE_ACCESS_TOKEN}` },
+    });
     res.json({ message: `番号 ${number} に通知を送信しました。` });
   } catch (err) {
     console.error(err);
@@ -90,7 +118,9 @@ app.post("/api/notify", async (req, res) => {
 app.post("/api/complete", (req, res) => {
   const { userId, ticketNumber } = req.body;
   const entry = ticketLog.find(t => t.number === ticketNumber && t.userId === userId);
-  if (!entry) return res.status(404).json({ success: false, message: "該当整理券が見つかりません。" });
+  if (!entry) {
+    return res.status(404).json({ success: false, message: "該当整理券が見つかりません。" });
+  }
   entry.completed = true;
   res.json({ success: true });
 });
@@ -98,13 +128,16 @@ app.post("/api/complete", (req, res) => {
 app.post("/api/unlock-limit", (req, res) => {
   const { number } = req.body;
   const entry = ticketLog.find(t => t.number === number);
-  if (!entry) return res.status(404).json({ success: false, message: "整理券が見つかりません。" });
-  if (entry.limitUnlocked) return res.status(400).json({ success: false, message: "すでに解除済みです。" });
+  if (!entry) {
+    return res.status(404).json({ success: false, message: "整理券が見つかりません。" });
+  }
+  if (entry.limitUnlocked) {
+    return res.status(400).json({ success: false, message: "すでに解除済みです。" });
+  }
   entry.limitUnlocked = true;
   res.json({ success: true });
 });
 
-// ✅ 修正済み：最新の整理券（逆順検索）を確認
 app.post("/api/check-unlock", (req, res) => {
   const { userId } = req.body;
   const entry = ticketLog.slice().reverse().find(t => t.userId === userId);
@@ -127,7 +160,9 @@ app.get("/api/reset-status", (req, res) => {
   }
 });
 
-app.get("/api/ticketing-status", (req, res) => res.json({ closed: isTicketingClosed }));
+app.get("/api/ticketing-status", (req, res) => {
+  res.json({ closed: isTicketingClosed });
+});
 
 app.post("/api/close-ticketing", (req, res) => {
   isTicketingClosed = true;
@@ -139,7 +174,9 @@ app.post("/api/open-ticketing", (req, res) => {
   res.json({ message: "本日の新規整理券発行を再開しました。" });
 });
 
-app.get("/", (req, res) => res.redirect("/ticket.html"));
+app.get("/", (req, res) => {
+  res.redirect("/ticket.html");
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`✅ Server running on port ${port}`));
