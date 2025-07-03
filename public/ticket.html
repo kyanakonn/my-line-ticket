@@ -41,7 +41,7 @@
       display: none; position: fixed; top: 0; left: 0;
       width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.8);
-      display: flex; align-items: center; justify-content: center;
+      align-items: center; justify-content: center;
       z-index: 1000;
     }
     .modal-content {
@@ -148,13 +148,19 @@ let isClosed = false;
 let checkUnlockInterval = null;
 
 window.addEventListener("load", () => {
-  setTimeout(() => {
-    splash.style.opacity = "0";
-  }, 1000);
-  setTimeout(() => {
+  if (localStorage.getItem("splashDone") === "true") {
     splash.remove();
     initializeLIFF();
-  }, 2000);
+  } else {
+    setTimeout(() => {
+      splash.style.opacity = "0";
+    }, 1000);
+    setTimeout(() => {
+      splash.remove();
+      localStorage.setItem("splashDone", "true");
+      initializeLIFF();
+    }, 2000);
+  }
 });
 
 async function initializeLIFF() {
@@ -177,14 +183,8 @@ async function postInit() {
   fetchCurrentNumber();
   setInterval(fetchCurrentNumber, 3000);
 
-  // 初めての方へモーダルは localStorage の値で表示判定
-  if (localStorage.getItem("firstTimeDone") !== "true") {
-    showFirstTimeModal();
-  }
-  // 注意事項モーダルは localStorage の値で表示判定
-  if (localStorage.getItem("dont-show-info") !== "true") {
-    showInfoModal();
-  }
+  if (localStorage.getItem("firstTimeDone") !== "true") showFirstTimeModal();
+  if (localStorage.getItem("dont-show-info") !== "true") showInfoModal();
 
   if (checkUnlockInterval) clearInterval(checkUnlockInterval);
   checkUnlockInterval = setInterval(checkLimitUnlockStatus, 30000);
@@ -192,13 +192,10 @@ async function postInit() {
 }
 
 function showInfoModal() {
-  // チェック状態を localStorage から復元するように変更
   dontShowInfoCheckbox.checked = (localStorage.getItem("dont-show-info") === "true");
   infoModal.style.display = "flex";
 }
-
 function closeInfoModal() {
-  // チェックボックスがONなら次回以降表示しない設定を保存
   if (dontShowInfoCheckbox.checked) {
     localStorage.setItem("dont-show-info", "true");
   } else {
@@ -206,21 +203,16 @@ function closeInfoModal() {
   }
   infoModal.style.display = "none";
 }
-
 function showFirstTimeModal() {
   firstTimeModal.style.display = "flex";
 }
-
 function closeFirstTimeModal() {
-  // 「初めての方へ」は閉じたら必ず次回から表示しない設定を保存
   localStorage.setItem("firstTimeDone", "true");
   firstTimeModal.style.display = "none";
 }
-
 function closeClosedModal() {
   closedModal.style.display = "none";
 }
-
 async function checkLimitUnlockStatus() {
   if (!userId) return;
   try {
@@ -242,7 +234,6 @@ async function checkLimitUnlockStatus() {
     console.error("解除状態取得失敗:", err);
   }
 }
-
 async function fetchTicketingStatus() {
   try {
     const res = await fetch("/api/ticketing-status");
@@ -260,24 +251,22 @@ async function fetchTicketingStatus() {
       }
     }
   } catch {
+    isClosed = false;
+    closeModal(closedModal);
     issueButton.disabled = false;
     issueButton.classList.remove("disabled");
   }
 }
-
 function openModal(modal) {
   modal.style.display = "flex";
 }
-
 function closeModal(modal) {
   modal.style.display = "none";
 }
-
 function restoreTicketNumber() {
   const t = localStorage.getItem("ticketNumber");
   if (t) ticketNumEl.textContent = `${t} 番`;
 }
-
 function disableButtonForRemainingTime() {
   const base = overrideTime || parseInt(localStorage.getItem("lastIssuedAt") || "0");
   const remain = DISABLE_MS - (Date.now() - base);
@@ -295,7 +284,6 @@ function disableButtonForRemainingTime() {
     countdownEl.textContent = "";
   }
 }
-
 function startCountdown(ms) {
   clearInterval(countdownInterval);
   function tick() {
@@ -312,7 +300,6 @@ function startCountdown(ms) {
   tick();
   countdownInterval = setInterval(tick, 1000);
 }
-
 async function getTicket() {
   if (isClosed) return;
   overrideTime = null;
@@ -333,7 +320,6 @@ async function getTicket() {
     alert("整理券の発行に失敗しました。受付までお越しください。");
   }
 }
-
 async function fetchCurrentNumber() {
   try {
     const res = await fetch("/api/number");
@@ -345,20 +331,16 @@ async function fetchCurrentNumber() {
     numberEl.textContent = "取得失敗";
   }
 }
-
 function updateWaitingInfo(current, my) {
   missedInfo.textContent = "";
   completeNote.style.display = "none";
-
   if (isNaN(current) || isNaN(my)) {
     waitingInfo.textContent = "";
     completeButton.style.display = "none";
     return;
   }
-
   const completed = localStorage.getItem("completed") === "true";
   const diff = my - current;
-
   if (diff === 0 && !completed) {
     waitingInfo.textContent = "順番です！今すぐ受付までお越しください！";
     waitingInfo.style.color = "red";
@@ -387,11 +369,8 @@ function updateWaitingInfo(current, my) {
     completeButton.style.display = "none";
   }
 }
-
 function confirmComplete() {
-  if (!confirm("このボタンの処理は受付以外の人が行った場合この整理券は無効になります。受付の指示があった場合のみ押してください。")) {
-    return;
-  }
+  if (!confirm("このボタンの処理は受付以外の人が行った場合この整理券は無効になります。受付の指示があった場合のみ押してください。")) return;
   fetch("/api/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -406,6 +385,5 @@ function confirmComplete() {
   completeNote.style.display = "none";
 }
 </script>
-
 </body>
 </html>
