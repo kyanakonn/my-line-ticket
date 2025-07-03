@@ -177,7 +177,6 @@
       span.textContent = text;
 
       const parentWidth = span.parentElement.offsetWidth;
-
       span.style.transition = 'none';
       span.style.transform = `translateX(${parentWidth}px)`;
 
@@ -190,9 +189,12 @@
         span.style.transition = `transform ${duration}s linear`;
         span.style.transform = `translateX(-${textWidth}px)`;
 
-        setTimeout(() => {
-          scrollStatusText(text);
-        }, duration * 1000 + 1000); // ← +1秒の余裕を追加
+        const handleTransitionEnd = () => {
+          span.removeEventListener('transitionend', handleTransitionEnd);
+          scrollStatusText(text); // アニメ完了後に再実行
+        };
+
+        span.addEventListener('transitionend', handleTransitionEnd);
       });
     }
 
