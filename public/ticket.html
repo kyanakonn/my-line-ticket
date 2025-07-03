@@ -148,6 +148,7 @@ let isClosed = false;
 let checkUnlockInterval = null;
 let checkResetInterval = null;
 let resetAlreadyHandled = false;
+let limitUnlocked = false;
 
 window.addEventListener("load", () => {
   if (localStorage.getItem("splashDone") === "true") {
@@ -233,7 +234,7 @@ async function checkLimitUnlockStatus() {
     });
     const data = await res.json();
     if (data.unlocked) {
-      overrideTime = 0;
+      limitUnlocked = true;
       issueButton.disabled = false;
       issueButton.classList.remove("disabled");
       countdownEl.textContent = "";
@@ -277,6 +278,12 @@ function restoreTicketNumber() {
   if (t) ticketNumEl.textContent = `${t} 番`;
 }
 function disableButtonForRemainingTime() {
+  if (limitUnlocked) {
+    issueButton.disabled = false;
+    issueButton.classList.remove("disabled");
+    countdownEl.textContent = "";
+    return;
+  }
   const base = overrideTime || parseInt(localStorage.getItem("lastIssuedAt") || "0");
   const remain = DISABLE_MS - (Date.now() - base);
   if (remain > 0 || isClosed) {
@@ -411,15 +418,14 @@ function confirmComplete() {
 }
 async function checkResetStatus() {
   if (resetAlreadyHandled) return;
-
   try {
     const res = await fetch("/api/reset-status");
     const data = await res.json();
-
     if (data.reset) {
       console.log("管理者によるリセット検知：localStorage を削除します");
       localStorage.clear();
       resetAlreadyHandled = true;
+      limitUnlocked = false;
       location.reload();
     }
   } catch (err) {
