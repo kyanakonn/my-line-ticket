@@ -172,7 +172,14 @@
       }
     }
 
+    let isScrolling = false;
+    let lastText = '';
+
     function scrollStatusText(text) {
+      if (isScrolling && text === lastText) return;
+      isScrolling = true;
+      lastText = text;
+
       const span = document.querySelector('#status-message span');
       span.textContent = text;
 
@@ -191,7 +198,8 @@
 
         const handleTransitionEnd = () => {
           span.removeEventListener('transitionend', handleTransitionEnd);
-          scrollStatusText(text); // アニメ完了後に再実行
+          isScrolling = false;
+          scrollStatusText(text); // 完了後に再ループ
         };
 
         span.addEventListener('transitionend', handleTransitionEnd);
