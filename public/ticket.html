@@ -165,16 +165,20 @@ window.addEventListener("load", () => {
 
 async function initializeLIFF() {
   try {
-    await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: true });
-    if (liff.isLoggedIn()) {
+    await liff.init({ liffId: "2007636118-xGZvpLJM", withLoginOnExternalBrowser: false });
+
+    if (liff.isInClient()) {
       const profile = await liff.getProfile();
       userId = profile.userId;
+    } else {
+      console.warn("LINEアプリ外からアクセスされています。userIdは取得されません。");
     }
   } catch (err) {
     console.error("LIFF 初期化失敗:", err);
   }
   await postInit();
 }
+
 
 async function postInit() {
   await fetchTicketingStatus();
