@@ -174,7 +174,7 @@ async function initializeLIFF() {
       const profile = await liff.getProfile();
       userId = profile.userId;
     } else {
-      console.warn("LINEアプリ外からアクセスされています。userIdは取得されません。");
+      console.warn("LINEアプリ外からアクセスされています。ユーザーIDは取得されません。");
     }
   } catch (err) {
     console.error("LIFF 初期化失敗:", err);
@@ -241,7 +241,7 @@ async function checkLimitUnlockStatus() {
       clearInterval(countdownInterval);
     }
   } catch (err) {
-    console.error("解除状態取得失敗:", err);
+    console.error("解除失敗:", err);
   }
 }
 async function fetchTicketingStatus() {
@@ -398,7 +398,7 @@ function updateWaitingInfo(current, my) {
 }
 
 function confirmComplete() {
-  if (!confirm("このボタンの処理は受付以外で操作を行った場合この整理券は無効になります。")) return;
+  if (!confirm("このボタンの処理を受付以外で行った場合この整理券は無効になります。")) return;
 
   fetch("/api/complete", {
     method: "POST",
@@ -409,7 +409,7 @@ function confirmComplete() {
     }),
   });
 
-  alert("受付完了しました。");
+  alert("受付が完了しました！");
   localStorage.setItem("completed", "true");
 
  
@@ -422,7 +422,7 @@ async function checkResetStatus() {
     const res = await fetch("/api/reset-status");
     const data = await res.json();
     if (data.reset) {
-      console.log("管理者によるリセット検知：ローカルストレージを削除します");
+      console.log("管理者によるリセット検知：ローカルストレージを削除");
       localStorage.clear();
       resetAlreadyHandled = true;
       limitUnlocked = false;
