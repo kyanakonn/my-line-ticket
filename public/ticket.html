@@ -372,7 +372,7 @@ function updateWaitingInfo(current, my) {
       waitingInfo.style.color = "lightblue";
     } else {
       waitingInfo.textContent = "";
-      missedInfo.innerHTML = `受付で ${my} 番の番号のお客様を確認できなかったため、次の番号のお客様をお呼びしました。<br/>受付までお越しくだされば対応いたします。`;
+      missedInfo.innerHTML = `受付で ${my} 番の番号のお客様を確認できなかったため、 ${my} 番を飛ばして進行しています。<br/>受付までお越しくだされば対応します。`;
     }
     if (!completed) {
       completeButton.style.display = "inline-block";
