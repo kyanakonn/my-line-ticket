@@ -81,12 +81,12 @@
     <div class="modal-content">
       <h2>⚠️注意事項⚠️</h2>
       <p>
-        ・一組につき一枚整理券を発行してください。<br/>
-        ・整理券番号は1番から順に割り当てられます。<br/>
+        ・一組に一枚整理券を発行してください。<br/>
+        ・番号は1番から順に割り当てられます。<br/>
         ・整理券の発行が上限に達した場合途中で新規整理券発行の受付を終了します。<br/>
         ・整理券は1時間に1枚まで発行できます。<br/>
-        ・整理券発行後のキャンセルは受付までお越しください。<br/>
-        ・呼び出し中に間に合わなかった場合でも受付で対応いたします。
+        ・整理券発行後のキャンセルは受付まで。<br/>
+        ・番号が過ぎてしまった場合でも受付にて対応します。
       </p>
       <label><input type="checkbox" id="dont-show-info-checkbox"/> 次回からこれを表示しない</label><br/>
       <button onclick="closeInfoModal()">わかりました！</button>
@@ -422,14 +422,14 @@ async function checkResetStatus() {
     const res = await fetch("/api/reset-status");
     const data = await res.json();
     if (data.reset) {
-      console.log("管理者によるリセット検知：localStorage を削除します");
+      console.log("管理者によるリセット検知：ローカルストレージを削除します");
       localStorage.clear();
       resetAlreadyHandled = true;
       limitUnlocked = false;
       location.reload();
     }
   } catch (err) {
-    console.error("リセット状態の確認に失敗しました:", err);
+    console.error("リセット状態の確認に失敗:", err);
   }
 }
 
