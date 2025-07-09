@@ -363,10 +363,10 @@ function updateWaitingInfo(current, my) {
   if ((diff >= 0 && diff <= 5) || (diff < 0 && !completed)) {
     if (diff === 0) {
       waitingInfo.textContent = "順番です！準備をしてください！";
-      waitingInfo.style.color = "red";
+      waitingInfo.style.color = "lightblue";
     } else if (diff > 0 && !completed) {
       waitingInfo.textContent = "もうすぐ順番です。受付までお越しください！";
-      waitingInfo.style.color = "red";
+      waitingInfo.style.color = "yellow";
     } else if (diff > 0 && completed) {
       waitingInfo.textContent = "受付が完了しました！呼び出しがあるまで近くでお待ちください。";
       waitingInfo.style.color = "lightblue";
