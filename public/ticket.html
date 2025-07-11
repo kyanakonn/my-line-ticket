@@ -331,6 +331,7 @@ async function getTicket() {
     });
     if (!res.ok) throw new Error("発行失敗");
     const data = await res.json();
+    const ticketNumber = data.number;
     ticketNumEl.textContent = `${data.number} 番`;
     localStorage.setItem("ticketNumber", data.number);
     localStorage.setItem("completed", "false");
