@@ -371,30 +371,8 @@ async function getTicket() {
     localStorage.setItem("ticketNumber", ticketNumber);
     localStorage.setItem("completed", "false");
 
-    // ↓ 入場目安計算
-    try {
-      const res2 = await fetch("/api/time-data");
-      const timeData = await res2.json();
-
-      const start = new Date();
-      start.setHours(9, 30, 0, 0); // 9:30固定スタート
-
-      let total = 0;
-      for (let i = 1; i < ticketNumber; i++) {
-        const entry = timeData.find(e => e.number === i);
-        const minutes = entry?.actualMinutes ?? 4;
-        total += minutes;
-      }
-
-      const estimate = new Date(start.getTime() + total * 60000);
-      const h = estimate.getHours().toString().padStart(2, '0');
-      const m = estimate.getMinutes().toString().padStart(2, '0');
-      document.getElementById("estimate-time").textContent = `入場目安時刻は ${h}:${m} 頃です。`;
-
-    } catch (e) {
-      console.error("入場時間目安の取得に失敗:", e);
-    }
-
+   await updateEstimateTime();
+ 
     disableButtonForRemainingTime();
   } catch {
     alert("整理券の発行に失敗しました。受付までお越しください。");
