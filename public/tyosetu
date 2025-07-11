@@ -1,1 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>所要時間編集ページ</title>
+</head>
+<body>
+  <h1>所要時間の手動編集</h1>
+  <label>整理券番号: <input type="number" id="number" min="1" /></label><br />
+  <label>所要時間（分）: <input type="number" id="actualMinutes" min="0" /></label><br />
+  <button onclick="updateTime()">更新する</button>
+  <div id="message"></div>
 
+<script>
+async function updateTime() {
+  const number = parseInt(document.getElementById("number").value);
+  const actualMinutes = parseInt(document.getElementById("actualMinutes").value);
+  if (isNaN(number) || number <= 0 || isNaN(actualMinutes) || actualMinutes < 0) {
+    alert("正しい番号と所要時間を入力してください。");
+    return;
+  }
+  try {
+    const res = await fetch("/api/time-data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ number, actualMinutes }),
+    });
+    const data = await res.json();
+    document.getElementById("message").textContent = data.message || "更新しました。";
+  } catch (e) {
+    document.getElementById("message").textContent = "更新に失敗しました。";
+  }
+}
+</script>
+</body>
+</html>
