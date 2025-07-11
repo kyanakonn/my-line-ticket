@@ -230,12 +230,14 @@ function closeClosedModal() {
   closedModal.style.display = "none";
 }
 async function checkLimitUnlockStatus() {
-  if (!userId) return;
+  const myTicket = parseInt(localStorage.getItem("ticketNumber"));
+  if (!myTicket) return;
+
   try {
-    const res = await fetch("/api/check-unlock", {
+    const res = await fetch("/api/check-unlock-by-number", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ number: myTicket }),
     });
     const data = await res.json();
     if (data.unlocked) {
@@ -246,9 +248,10 @@ async function checkLimitUnlockStatus() {
       clearInterval(countdownInterval);
     }
   } catch (err) {
-    console.error("解除失敗:", err);
+    console.error("制限解除の確認に失敗:", err);
   }
 }
+
 async function fetchTicketingStatus() {
   try {
     const res = await fetch("/api/ticketing-status");
