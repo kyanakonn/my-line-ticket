@@ -251,7 +251,6 @@ async function checkLimitUnlockStatus() {
     console.error("制限解除の確認に失敗:", err);
   }
 }
-
 async function fetchTicketingStatus() {
   try {
     const res = await fetch("/api/ticketing-status");
