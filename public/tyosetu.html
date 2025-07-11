@@ -3,34 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <title>所要時間編集ページ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #111;
+      color: #eee;
+      padding: 2em;
+    }
+    h1 {
+      color: #ff6666;
+      font-size: 1.8em;
+      margin-bottom: 1em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+    }
+    th, td {
+      padding: 0.5em;
+      border: 1px solid #555;
+      text-align: center;
+    }
+    th {
+      background-color: #222;
+    }
+    input[type="number"] {
+      width: 60px;
+      padding: 0.3em;
+      background-color: #222;
+      color: #fff;
+      border: 1px solid #444;
+    }
+    button {
+      padding: 0.4em 1em;
+      background-color: crimson;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    #message {
+      margin-top: 1em;
+      font-size: 1em;
+      color: lightgreen;
+    }
+  </style>
 </head>
 <body>
-  <h1>所要時間の手動編集</h1>
-  <label>整理券番号: <input type="number" id="number" min="1" /></label><br />
-  <label>所要時間（分）: <input type="number" id="actualMinutes" min="0" /></label><br />
-  <button onclick="updateTime()">更新する</button>
-  <div id="message"></div>
 
-<script>
-async function updateTime() {
-  const number = parseInt(document.getElementById("number").value);
-  const actualMinutes = parseInt(document.getElementById("actualMinutes").value);
-  if (isNaN(number) || number <= 0 || isNaN(actualMinutes) || actualMinutes < 0) {
-    alert("正しい番号と所要時間を入力してください。");
-    return;
-  }
-  try {
-    const res = await fetch("/api/time-data", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ number, actualMinutes }),
-    });
-    const data = await res.json();
-    document.getElementById("message").textContent = data.message || "更新しました。";
-  } catch (e) {
-    document.getElementById("message").textContent = "更新に失敗しました。";
-  }
-}
-</script>
+  <h1>整理券ごとの所要時間を編集</h1>
+  <div id="message"></div>
+  <table id="time-table">
+    <thead>
+      <tr>
+        <th>整理券番号</th>
+        <th>所要時間（分）</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- JSで埋め込み -->
+    </tbody>
+  </table>
+
+  <script>
+    async function loadTimeData() {
+      try {
+        const res = await fetch("/api/time-data");
+        const data = await res.json();
+        const tbody = document.querySelector("#time-table tbody");
+        tbody.innerHTML = "";
+
+        data.sort((a, b) => a.number - b.number).forEach(entry => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${entry.number}</td>
+            <td><input type="number" id="time-${entry.number}" value="${entry.actualMinutes ?? 4}" min="0" /></td>
+            <td><button onclick="updateTime(${entry.number})">更新</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        document.getElementById("message").textContent = "データの読み込みに失敗しました。";
+      }
+    }
+
+    async function updateTime(number) {
+      const minutes = parseInt(document.getElementById(`time-${number}`).value);
+      if (isNaN(minutes) || minutes < 0) {
+        alert("正しい所要時間を入力してください。");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/time-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ number, actualMinutes: minutes }),
+        });
+        const data = await res.json();
+        document.getElementById("message").textContent = data.message || "更新しました。";
+      } catch (e) {
+        document.getElementById("message").textContent = "更新に失敗しました。";
+      }
+    }
+
+    loadTimeData();
+  </script>
+
 </body>
 </html>
