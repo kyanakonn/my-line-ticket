@@ -88,7 +88,6 @@ app.get("/api/ticket/log", (req, res) => {
   res.json(ticketLog);
 });
 
-// 所要時間の取得
 app.get("/api/time-data", (req, res) => {
   const timeData = ticketLog.map(t => ({
     number: t.number,
@@ -97,7 +96,6 @@ app.get("/api/time-data", (req, res) => {
   res.json(timeData);
 });
 
-// 所要時間の更新（パスを統一）
 app.post("/api/time-data", (req, res) => {
   const { number, actualMinutes } = req.body;
   const entry = ticketLog.find(t => t.number === number);
@@ -163,6 +161,12 @@ app.post("/api/unlock-limit", (req, res) => {
 app.post("/api/check-unlock", (req, res) => {
   const { userId } = req.body;
   const entry = ticketLog.slice().reverse().find(t => t.userId === userId);
+  res.json({ unlocked: entry?.limitUnlocked || false });
+});
+
+app.post("/api/check-unlock-by-number", (req, res) => {
+  const { number } = req.body;
+  const entry = ticketLog.find(t => t.number === number);
   res.json({ unlocked: entry?.limitUnlocked || false });
 });
 
