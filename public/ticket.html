@@ -192,6 +192,8 @@ async function postInit() {
   disableButtonForRemainingTime();
   fetchCurrentNumber();
   setInterval(fetchCurrentNumber, 3000);
+  updateEstimateTime();
+  setInterval(updateEstimateTime, 3000);
 
   if (localStorage.getItem("firstTimeDone") !== "true") showFirstTimeModal();
   if (localStorage.getItem("dont-show-info") !== "true") showInfoModal();
