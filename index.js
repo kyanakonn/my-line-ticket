@@ -56,6 +56,7 @@ app.post("/api/ticket", (req, res) => {
     userId: userId || null,
     completed: false,
     limitUnlocked: false,
+    actualMinutes: 4, // デフォルト4分を追加
   });
   res.json({ number: ticketNumber });
 });
@@ -86,6 +87,32 @@ app.get("/api/ticket/last", (req, res) => {
 app.get("/api/ticket/log", (req, res) => {
   res.json(ticketLog);
 });
+
+// ← ここから追加のAPI ↓
+
+// /api/time-data で番号ごとの所要時間を返す
+app.get("/api/time-data", (req, res) => {
+  const timeData = ticketLog.map(t => ({
+    number: t.number,
+    actualMinutes: t.actualMinutes || 4,
+  }));
+  res.json(timeData);
+});
+
+// 所要時間更新用API（管理用。使わなくてもよい）
+app.post("/api/time-data/update", (req, res) => {
+  const { number, actualMinutes } = req.body;
+  const entry = ticketLog.find(t => t.number === number);
+  if (!entry) return res.status(404).json({ message: "整理券が見つかりません。" });
+  if (typeof actualMinutes !== "number" || actualMinutes <= 0) {
+    return res.status(400).json({ message: "無効な所要時間です。" });
+  }
+  entry.actualMinutes = actualMinutes;
+  res.json({ message: "所要時間を更新しました。" });
+});
+
+// ← ここまで追加API ↑
+
 
 app.post("/api/notify", async (req, res) => {
   const { number, message } = req.body;
