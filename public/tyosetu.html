@@ -51,12 +51,18 @@
       font-size: 1em;
       color: lightgreen;
     }
+    #next-estimate {
+      margin-top: 1em;
+      font-size: 1.1em;
+      color: lightblue;
+    }
   </style>
 </head>
 <body>
 
   <h1>整理券ごとの所要時間を編集</h1>
   <div id="message"></div>
+  <div id="next-estimate"></div>
   <table id="time-table">
     <thead>
       <tr>
@@ -87,6 +93,22 @@
           `;
           tbody.appendChild(tr);
         });
+
+        // 入場目安表示の追加処理
+        const start = new Date();
+        start.setHours(9, 30, 0, 0); // 9:30スタート
+        let total = 0;
+        data.forEach(entry => {
+          const minutes = entry?.actualMinutes ?? 4;
+          total += minutes;
+        });
+
+        const estimate = new Date(start.getTime() + total * 60000);
+        const h = estimate.getHours().toString().padStart(2, '0');
+        const m = estimate.getMinutes().toString().padStart(2, '0');
+        document.getElementById("next-estimate").textContent =
+          `次の整理券（${data.length + 1}番）の入場目安は ${h}:${m} 頃です。`;
+
       } catch (e) {
         document.getElementById("message").textContent = "データの読み込みに失敗しました。";
       }
@@ -107,6 +129,7 @@
         });
         const data = await res.json();
         document.getElementById("message").textContent = data.message || "更新しました。";
+        loadTimeData(); // 更新後に再表示（目安も更新）
       } catch (e) {
         document.getElementById("message").textContent = "更新に失敗しました。";
       }
