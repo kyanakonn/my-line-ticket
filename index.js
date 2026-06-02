@@ -52,13 +52,13 @@ app.post("/api/ticket", (req, res) => {
   const { userId } = req.body;
   const ticketNumber = currentTicket++;
   ticketLog.push({
-    number: ticketNumber,
-    timestamp: Date.now(),
-    userId: userId || null,
-    completed: false,
-    limitUnlocked: false,
-    actualMinutes: 4,
-  });
+  number: ticketNumber,
+  timestamp: Date.now(),
+  userId: userId || null,
+  completed: false,
+  limitUnlockCount: 0,
+  actualMinutes: 4,
+});
   res.json({ number: ticketNumber });
 });
 
