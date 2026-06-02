@@ -124,7 +124,6 @@
   <div id="missed-info" style="margin-top:1em;color:orange;font-size:1em;"></div>
 
 <script>
-const splash = document.getElementById("splash-screen");
 const issueButton = document.getElementById("issue-button");
 const ticketNumEl = document.getElementById("ticket-number");
 const numberEl = document.getElementById("current-number");
@@ -137,7 +136,6 @@ const infoModal = document.getElementById("info-modal");
 const firstTimeModal = document.getElementById("first-time-modal");
 const closedModal = document.getElementById("closed-modal");
 const dontShowInfoCheckbox = document.getElementById("dont-show-info-checkbox");
-const fs = require("fs");
   
 const DISABLE_MS = 60 * 60 * 1000;
 let userId = null;
@@ -257,27 +255,7 @@ async function checkLimitUnlockStatus() {
     console.error("制限解除の確認に失敗:", err);
   }
 }
-  async function setPreparationMode() {
-  if (!confirm("準備中モードにしますか？")) return;
-
-  try {
-    const res = await fetch("/api/preparation-mode", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        preparing: true
-      })
-    });
-
-    const data = await res.json();
-    alert(data.message || "準備中モードにしました");
-  } catch (err) {
-    alert("設定に失敗しました");
-    console.error(err);
-  }
-}
+  
 
 async function startReception() {
   if (!confirm("受付を開始しますか？")) return;
