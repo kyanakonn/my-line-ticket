@@ -50,12 +50,20 @@ app.post("/api/ticket", (req, res) => {
     return res.status(403).json({ message: "本日の新規整理券の発行は終了しました。" });
   }
   const { userId } = req.body;
-  const unlockedEntry = ticketLog.find(
-  t => t.userId === userId && (t.limitUnlockCount || 0) > 0
-);
+  const unlockedEntry = ticketLog
+  .slice()
+  .reverse()
+  .find(
+    t => t.userId === userId &&
+         (t.limitUnlockCount || 0) > 0
+  );
 
 if (unlockedEntry) {
   unlockedEntry.limitUnlockCount--;
+
+  console.log(
+    `再発行残り回数: ${unlockedEntry.limitUnlockCount}`
+  );
 }
   const ticketNumber = currentTicket++;
   ticketLog.push({
@@ -155,29 +163,46 @@ app.post("/api/complete", (req, res) => {
 
 app.post("/api/unlock-limit", (req, res) => {
   const { number } = req.body;
+
   const entry = ticketLog.find(t => t.number === number);
-if (!entry) {
-    return res.status(404).json({ success: false, message: "整理券が見つかりません。" });
+
+  if (!entry) {
+    return res.status(404).json({
+      success: false,
+      message: "整理券が見つかりません。"
+    });
   }
+
+  // ←ここ
   entry.limitUnlockCount = 1;
-res.json({
-  success: true,
-  message: `番号 ${number} を1回だけ再発行可能にしました`
-});
-  res.json({ success: true });
+
+  res.json({
+    success: true,
+    message: `番号 ${number} を1回再発行可能にしました`
+  });
 });
 
 app.post("/api/check-unlock", (req, res) => {
   const { userId } = req.body;
-  const entry = ticketLog.slice().reverse().find(t => t.userId === userId);
+
+  const entry = ticketLog
+    .slice()
+    .reverse()
+    .find(t => t.userId === userId);
+
   res.json({
-  unlocked: (entry?.limitUnlockCount || 0) > 0
+    unlocked: (entry?.limitUnlockCount || 0) > 0
+  });
 });
 
 app.post("/api/check-unlock-by-number", (req, res) => {
   const { number } = req.body;
+
   const entry = ticketLog.find(t => t.number === number);
-  res.json({ unlocked: entry?.limitUnlocked || false });
+
+  res.json({
+    unlocked: (entry?.limitUnlockCount || 0) > 0
+  });
 });
 
 app.post("/api/reset", (req, res) => {
