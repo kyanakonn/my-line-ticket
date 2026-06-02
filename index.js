@@ -122,7 +122,18 @@ app.post("/api/time-data", (req, res) => {
   entry.actualMinutes = actualMinutes;
   res.json({ message: "所要時間を更新しました。" });
 });
+app.get("/api/current-ticket-time", (req, res) => {
 
+  const current = ticketLog.find(
+    t => t.number === currentNumber
+  );
+
+  res.json({
+    number: currentNumber,
+    actualMinutes: current?.actualMinutes || 4
+  });
+
+});
 app.post("/api/notify", async (req, res) => {
   const { number, message } = req.body;
   if (typeof number !== "number" || number <= 0) {
