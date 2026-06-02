@@ -141,7 +141,8 @@ const infoModal = document.getElementById("info-modal");
 const firstTimeModal = document.getElementById("first-time-modal");
 const closedModal = document.getElementById("closed-modal");
 const dontShowInfoCheckbox = document.getElementById("dont-show-info-checkbox");
-
+const fs = require("fs");
+  
 const DISABLE_MS = 60 * 60 * 1000;
 let userId = null;
 let countdownInterval = null;
@@ -153,7 +154,15 @@ let resetAlreadyHandled = false;
 let limitUnlocked = false;
 let preparing = true;
   
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
+
+  const ok = await checkPreparationMode();
+
+  if (!ok) {
+    splash.remove();
+    return;
+  }
+
   if (localStorage.getItem("splashDone") === "true") {
     splash.remove();
     initializeLIFF();
@@ -161,6 +170,7 @@ window.addEventListener("load", () => {
     setTimeout(() => {
       splash.style.opacity = "0";
     }, 1000);
+
     setTimeout(() => {
       splash.remove();
       localStorage.setItem("splashDone", "true");
@@ -520,6 +530,38 @@ async function checkResetStatus() {
   }
 }
 
+async function checkPreparationMode() {
+  try {
+    const res = await fetch("/api/preparation-mode");
+    const data = await res.json();
+
+    if (data.preparing) {
+      document.body.innerHTML = `
+        <div style="
+          display:flex;
+          flex-direction:column;
+          justify-content:center;
+          align-items:center;
+          height:100vh;
+          text-align:center;
+          padding:20px;
+        ">
+          <h1>準備中</h1>
+          <p style="font-size:1.2em;">
+            このサイトでの受付は<br>
+            当日の9時30分を目安に開始します。
+          </p>
+        </div>
+      `;
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error(err);
+    return true;
+  }
+}
 </script>
 </body>
 </html>
