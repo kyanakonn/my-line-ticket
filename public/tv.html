@@ -89,7 +89,7 @@
 </head>
 <body>
 
-  <div id="header-text">👻現在呼び出し中の番号👻</div>
+  <div id="header-text">現在呼び出し中の番号</div>
   <div id="number">--</div>
   <div id="status-message"><span>読み込み中...</span></div>
   <canvas id="blood-canvas"></canvas>
@@ -229,7 +229,7 @@
         if (data.closed) {
           scrollStatusText('本日の整理券の発行上限に達したため新規整理券発行の受付は終了しました！');
         } else {
-          scrollStatusText('2年D組「廃校へ、はい行こう」新規整理券の発行受付中！受付は整理券発行ページのQRコードから！');
+          scrollStatusText('3年B組「おかだの館」新規整理券の発行受付中！受付は整理券発行ページのQRコードから！');
         }
       } catch (err) {
         const span = document.querySelector('#status-message span');
