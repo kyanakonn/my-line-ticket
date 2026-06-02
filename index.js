@@ -12,6 +12,7 @@ let currentNumber = 0;
 let ticketLog = [];
 let isTicketingClosed = false;
 let resetFlag = false;
+let preparing = true;
 
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
 const LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push";
