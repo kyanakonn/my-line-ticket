@@ -250,6 +250,50 @@ async function checkLimitUnlockStatus() {
     console.error("制限解除の確認に失敗:", err);
   }
 }
+  async function setPreparationMode() {
+  if (!confirm("準備中モードにしますか？")) return;
+
+  try {
+    const res = await fetch("/api/preparation-mode", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        preparing: true
+      })
+    });
+
+    const data = await res.json();
+    alert(data.message || "準備中モードにしました");
+  } catch (err) {
+    alert("設定に失敗しました");
+    console.error(err);
+  }
+}
+
+async function startReception() {
+  if (!confirm("受付を開始しますか？")) return;
+
+  try {
+    const res = await fetch("/api/preparation-mode", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        preparing: false
+      })
+    });
+
+    const data = await res.json();
+    alert(data.message || "受付を開始しました");
+  } catch (err) {
+    alert("設定に失敗しました");
+    console.error(err);
+  }
+}
+  
 async function fetchTicketingStatus() {
   try {
     const res = await fetch("/api/ticketing-status");
