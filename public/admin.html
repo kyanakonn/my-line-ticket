@@ -116,7 +116,7 @@
     <button onclick="unlockLimit()">制限時間を解除する</button>
     <p id="unlock-status" style="color: darkgreen;"></p>
 
-    <h2>📋 整理券発行記録</h2>
+    <h2>整理券発行記録</h2>
     <table>
       <thead>
         <tr>
@@ -128,6 +128,24 @@
       <tbody id="log-table-body"></tbody>
     </table>
 
+    <div style="margin-top:2em;">
+  <button
+    id="prepare-button"
+    onclick="setPreparationMode()"
+    style="background:#f0ad4e;color:white;font-weight:bold;"
+  >
+    準備中にする
+  </button>
+
+  <button
+    id="start-button"
+    onclick="startReception()"
+    style="background:#5bc0de;color:white;font-weight:bold;margin-left:1em;"
+  >
+    受付開始
+  </button>
+</div>
+    
     <div style="margin-top: 2em;">
       <button id="close-ticketing-button" onclick="closeTicketing()" style="background-color: #d9534f; color: white; font-weight: bold;">
         本日の新規整理券発行を終了する
