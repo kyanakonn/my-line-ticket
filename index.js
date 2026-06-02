@@ -204,5 +204,21 @@ app.get("/", (req, res) => {
   res.redirect("/ticket.html");
 });
 
+app.get("/api/preparation-mode", (req, res) => {
+  res.json({
+    preparing
+  });
+});
+
+app.post("/api/preparation-mode", (req, res) => {
+  preparing = req.body.preparing;
+
+  res.json({
+    success: true,
+    message: preparing
+      ? "準備中モードにしました"
+      : "受付を開始しました"
+  });
+});
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`✅ Server running on port ${port}`));
