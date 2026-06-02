@@ -173,7 +173,7 @@ async function startMeasurement() {
   const currentNumber = await getCurrentNumber();
 
   if (!currentNumber || currentNumber <= 0) {
-    alert("呼び出し番号がありません");
+    alert("呼び出し番号が0になっています");
     return;
   }
 
@@ -207,7 +207,7 @@ async function startMeasurement() {
 async function finishMeasurement() {
 
   if (!timerInterval || !measuringTicket) {
-    alert("計測中ではありません");
+    alert("計測されていません");
     return;
   }
 
