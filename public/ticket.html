@@ -152,25 +152,10 @@ window.addEventListener("load", async () => {
 
   const ok = await checkPreparationMode();
 
-  if (!ok) {
-    splash.remove();
-    return;
-  }
+  if (!ok) return;
 
-  if (localStorage.getItem("splashDone") === "true") {
-    splash.remove();
-    initializeLIFF();
-  } else {
-    setTimeout(() => {
-      splash.style.opacity = "0";
-    }, 1000);
+  initializeLIFF();
 
-    setTimeout(() => {
-      splash.remove();
-      localStorage.setItem("splashDone", "true");
-      initializeLIFF();
-    }, 2000);
-  }
 });
 
 async function initializeLIFF() {
