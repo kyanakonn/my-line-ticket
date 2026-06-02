@@ -374,6 +374,52 @@
         console.error(err);
       }
     }
+
+    async function setPreparationMode() {
+  if (!confirm("準備中モードにしますか？")) return;
+
+  try {
+    const res = await fetch("/api/preparation-mode", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        preparing: true
+      })
+    });
+
+    const data = await res.json();
+
+    alert(data.message || "準備中モードにしました");
+  } catch (err) {
+    console.error(err);
+    alert("設定に失敗しました");
+  }
+}
+
+async function startReception() {
+  if (!confirm("受付を開始しますか？")) return;
+
+  try {
+    const res = await fetch("/api/preparation-mode", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        preparing: false
+      })
+    });
+
+    const data = await res.json();
+
+    alert(data.message || "受付を開始しました");
+  } catch (err) {
+    console.error(err);
+    alert("設定に失敗しました");
+  }
+}
   </script>
 
 </body>
