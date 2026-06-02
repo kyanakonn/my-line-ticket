@@ -151,7 +151,8 @@ let checkUnlockInterval = null;
 let checkResetInterval = null;
 let resetAlreadyHandled = false;
 let limitUnlocked = false;
-
+let preparing = true;
+  
 window.addEventListener("load", () => {
   if (localStorage.getItem("splashDone") === "true") {
     splash.remove();
