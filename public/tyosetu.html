@@ -61,6 +61,25 @@
 <body>
 
   <h1>整理券ごとの所要時間を編集</h1>
+  <div id="timer-panel" style="margin-bottom:20px;">
+  <h2>自動計測</h2>
+
+  <div id="current-ticket" style="font-size:1.2em;margin-bottom:10px;">
+    現在計測中: -
+  </div>
+
+  <div id="elapsed-time" style="font-size:1.5em;color:gold;margin-bottom:10px;">
+    00:00
+  </div>
+
+  <button onclick="startMeasurement()">
+    開始
+  </button>
+
+  <button onclick="finishMeasurement()">
+    完了
+  </button>
+</div>
   <div id="message"></div>
   <div id="next-estimate"></div>
   <table id="time-table">
@@ -77,6 +96,9 @@
   </table>
 
   <script>
+let timerInterval = null;
+let timerStartTime = null;
+let measuringTicket = null;
     async function loadTimeData() {
       try {
         const res = await fetch("/api/time-data");
@@ -135,6 +157,105 @@
       }
     }
 
+    async function getCurrentNumber() {
+  const res = await fetch("/api/number");
+  const data = await res.json();
+  return data.number;
+}
+
+async function startMeasurement() {
+
+  if (timerInterval) {
+    alert("すでに計測中です");
+    return;
+  }
+
+  const currentNumber = await getCurrentNumber();
+
+  if (!currentNumber || currentNumber <= 0) {
+    alert("呼び出し番号がありません");
+    return;
+  }
+
+  measuringTicket = currentNumber;
+
+  document.getElementById("current-ticket").textContent =
+    `現在計測中: ${measuringTicket}番`;
+
+  timerStartTime = Date.now();
+
+  timerInterval = setInterval(() => {
+
+    const elapsed =
+      Math.floor((Date.now() - timerStartTime) / 1000);
+
+    const min =
+      Math.floor(elapsed / 60);
+
+    const sec =
+      elapsed % 60;
+
+    document.getElementById("elapsed-time").textContent =
+      `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+
+  }, 1000);
+
+  document.getElementById("message").textContent =
+    `${measuringTicket}番の計測を開始しました`;
+}
+
+async function finishMeasurement() {
+
+  if (!timerInterval || !measuringTicket) {
+    alert("計測中ではありません");
+    return;
+  }
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  const elapsedMinutes =
+    Math.max(
+      1,
+      Math.round(
+        (Date.now() - timerStartTime) / 60000
+      )
+    );
+
+  try {
+
+    await fetch("/api/time-data", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        number: measuringTicket,
+        actualMinutes: elapsedMinutes
+      })
+    });
+
+    document.getElementById("message").textContent =
+      `${measuringTicket}番の所要時間 ${elapsedMinutes}分 を保存しました`;
+
+    document.getElementById("elapsed-time").textContent =
+      "00:00";
+
+    document.getElementById("current-ticket").textContent =
+      "現在計測中: -";
+
+    measuringTicket = null;
+    timerStartTime = null;
+
+    loadTimeData();
+
+  } catch (err) {
+
+    document.getElementById("message").textContent =
+      "保存に失敗しました";
+
+  }
+}
     loadTimeData();
   </script>
 
