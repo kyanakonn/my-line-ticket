@@ -199,31 +199,30 @@
         document.getElementById("last-ticket-number").textContent = ticketData.last;
         document.getElementById("total-issued").textContent = logData.length;
 
-        // 今日の9:30を基準時刻にする
-const startTime = new Date();
-startTime.setHours(9, 30, 0, 0);
+       const start = new Date();
+start.setHours(9, 30, 0, 0);
 
-// 呼び出し済みの人の所要時間を合計
-let passedMinutes = 0;
+let total = 0;
 
 logData.forEach(item => {
-  if (item.number <= numberData.number) {
-    passedMinutes += item.actualMinutes || 4;
-  }
+  total += item.actualMinutes || 4;
 });
 
-// 次回発行される番号
-const nextTicketNumber = ticketData.last + 1;
-
-// 次回発行者の呼び出し時刻
 const estimate = new Date(
-  startTime.getTime() + passedMinutes * 60000
+  start.getTime() + total * 60000
 );
 
-const hh = String(estimate.getHours()).padStart(2, "0");
-const mm = String(estimate.getMinutes()).padStart(2, "0");
+const hh = String(
+  estimate.getHours()
+).padStart(2, "0");
 
-document.getElementById("next-estimated-time").textContent =
+const mm = String(
+  estimate.getMinutes()
+).padStart(2, "0");
+
+document.getElementById(
+  "next-estimated-time"
+).textContent =
   `${hh}:${mm}頃`;
      
 
