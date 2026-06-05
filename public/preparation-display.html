@@ -132,27 +132,29 @@ document
     const audio =
       document.getElementById("ready-sound");
 
-    try {
+ try {
 
-      audio.volume = 0;
+  audio.volume = 0;
 
-      await audio.play();
+  await audio.play();
 
-      audio.pause();
+  audio.pause();
 
-      audio.currentTime = 0;
+  audio.currentTime = 0;
 
-      audio.volume = 1;
+  audio.volume = 1;
 
-      soundEnabled = true;
+  soundEnabled = true;
 
-      alert("音声を有効化しました");
+  document
+    .getElementById("enable-sound")
+    .remove();
 
-    } catch(err) {
+} catch(err) {
 
-      console.error(err);
+  console.error(err);
 
-    }
+}
 
 });
 
