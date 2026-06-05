@@ -227,9 +227,9 @@
         if (!res.ok) throw new Error('status error');
         const data = await res.json();
         if (data.closed) {
-          scrollStatusText('本日の整理券の発行上限に達したため新規整理券発行の受付は終了しました！');
+          scrollStatusText('整理券の発行が規定の数を超えたため、新規整理券発行の受付を中断しています。');
         } else {
-          scrollStatusText('3年B組「おかだの館」新規整理券の発行受付中！受付は整理券発行ページのQRコードから！');
+          scrollStatusText('3年B組「おかだの館」新規整理券の発行受付中！受付はQRコードから！');
         }
       } catch (err) {
         const span = document.querySelector('#status-message span');
