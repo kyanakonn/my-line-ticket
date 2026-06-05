@@ -89,11 +89,6 @@
        発行人数の合計：<span id="total-issued">--</span>
     </div>
     
-　　　<div class="number-display">
-   次回発行時の呼び出し時刻目安：
-   <span id="next-estimated-time">--</span>
-　　</div>
-    
     <div>
       <button onclick="changeNumber(-1)">戻る（-1）</button>
       <button onclick="changeNumber(1)">進む（+1）</button>
@@ -198,33 +193,7 @@
         document.getElementById("current-number").textContent = numberData.number;
         document.getElementById("last-ticket-number").textContent = ticketData.last;
         document.getElementById("total-issued").textContent = logData.length;
-
-       const start = new Date();
-start.setHours(9, 30, 0, 0);
-
-let total = 0;
-
-logData.forEach(item => {
-  total += item.actualMinutes || 4;
-});
-
-const estimate = new Date(
-  start.getTime() + total * 60000
-);
-
-const hh = String(
-  estimate.getHours()
-).padStart(2, "0");
-
-const mm = String(
-  estimate.getMinutes()
-).padStart(2, "0");
-
-document.getElementById(
-  "next-estimated-time"
-).textContent =
-  `${hh}:${mm}頃`;
-     
+        
 
         const tbody = document.getElementById("log-table-body");
         tbody.innerHTML = "";
