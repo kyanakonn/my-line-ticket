@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>受付状況</title>
+<title>準備状況</title>
 
 <style>
 body{
@@ -74,12 +74,12 @@ async function refreshStatus(){
     if(data.preparing){
 
       lamp.className = "preparing";
-      text.textContent = "準備中";
+      text.textContent = "";
 
     }else{
 
       lamp.className = "ok";
-      text.textContent = "準備OK";
+      text.textContent = "";
 
     }
 
