@@ -95,8 +95,13 @@
   <canvas id="blood-canvas"></canvas>
   <button id="fullscreen-button">全画面</button>
 
+  <audio id="call-sound" preload="auto">
+  <source src="/call.mp3" type="audio/mpeg">
+</audio>
+  
   <script>
     const numberEl = document.getElementById('number');
+    const callSound = document.getElementById('call-sound');
     const canvas = document.getElementById('blood-canvas');
     const ctx = canvas.getContext('2d');
 
@@ -173,19 +178,24 @@
         const data = await res.json();
 
         if (data.number !== currentNumber) {
-          currentNumber = data.number;
-          numberEl.textContent = currentNumber;
+  const oldNumber = currentNumber;
+  currentNumber = data.number;
+  numberEl.textContent = currentNumber;
 
-          const rect = numberEl.getBoundingClientRect();
-          const centerX = rect.left + rect.width / 2;
-          const centerY = rect.top + rect.height / 2;
-          particles.push(...createBloodSplash(centerX, centerY));
-          vibrateScreen();
-        }
-      } catch (e) {
-        numberEl.textContent = '取得失敗';
-      }
-    }
+  const rect = numberEl.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  particles.push(...createBloodSplash(centerX, centerY));
+  vibrateScreen();
+
+  // 初回表示以外で音を鳴らす
+  if (oldNumber !== null) {
+    callSound.currentTime = 0;
+    callSound.play().catch(err => {
+      console.log("音声再生失敗", err);
+    });
+  }
+}
 
     let isScrolling = false;
     let lastText = '';
@@ -239,6 +249,14 @@
     }
 
     document.getElementById('fullscreen-button').addEventListener('click', () => {
+
+      callSound.play()
+  .then(() => {
+    callSound.pause();
+    callSound.currentTime = 0;
+  })
+  .catch(() => {});
+      
       const el = document.documentElement;
       if (document.fullscreenElement) {
         document.exitFullscreen();
