@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>準備状況管理</title>
+
+<style>
+
+body{
+  font-family:sans-serif;
+  text-align:center;
+  padding:40px;
+}
+
+#status{
+  font-size:2rem;
+  margin:30px 0;
+  font-weight:bold;
+}
+
+button{
+  padding:15px 40px;
+  font-size:1.2rem;
+  margin:10px;
+  cursor:pointer;
+}
+
+.preparing{
+  color:red;
+}
+
+.ready{
+  color:green;
+}
+
+</style>
+</head>
+<body>
+
+<h1>準備状況管理</h1>
+
+<div id="status">読込中...</div>
+
+<button onclick="setPreparing()">
+準備中にする
+</button>
+
+<button onclick="setReady()">
+準備OKにする
+</button>
+
+<script>
+
+async function loadStatus(){
+
+  const res =
+    await fetch("/api/preparation-mode");
+
+  const data =
+    await res.json();
+
+  const status =
+    document.getElementById("status");
+
+  if(data.preparing){
+
+    status.textContent =
+      "現在：準備中";
+
+    status.className =
+      "preparing";
+
+  }else{
+
+    status.textContent =
+      "現在：準備OK";
+
+    status.className =
+      "ready";
+
+  }
+}
+
+async function setPreparing(){
+
+  await fetch(
+    "/api/preparation-mode",
+    {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        preparing:true
+      })
+    }
+  );
+
+  loadStatus();
+}
+
+async function setReady(){
+
+  await fetch(
+    "/api/preparation-mode",
+    {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        preparing:false
+      })
+    }
+  );
+
+  loadStatus();
+}
+
+loadStatus();
+
+</script>
+
+</body>
+</html>
