@@ -52,6 +52,11 @@ body{
 
 <div id="lamp"></div>
 <div id="text">読込中...</div>
+  
+<button id="enable-sound">
+音声を有効化
+</button>
+  
 <audio id="ready-sound" preload="auto">
   <source src="/alarm.mp3" type="audio/mpeg">
 </audio>
@@ -85,10 +90,20 @@ if(data.preparing){
   lamp.className = "ok";
   text.textContent = "";
 
-  if(lastPreparingState === true){
-    document.getElementById("ready-sound").play()
-      .catch(err => console.log(err));
-  }
+if(
+  lastPreparingState === true &&
+  soundEnabled
+){
+
+  const audio =
+    document.getElementById("ready-sound");
+
+  audio.currentTime = 0;
+
+  audio.play()
+    .catch(console.error);
+
+}
 
 }
 
@@ -107,6 +122,39 @@ setInterval(
   refreshStatus,
   3000
 );
+
+let soundEnabled = false;
+
+document
+  .getElementById("enable-sound")
+  .addEventListener("click", async () => {
+
+    const audio =
+      document.getElementById("ready-sound");
+
+    try {
+
+      audio.volume = 0;
+
+      await audio.play();
+
+      audio.pause();
+
+      audio.currentTime = 0;
+
+      audio.volume = 1;
+
+      soundEnabled = true;
+
+      alert("音声を有効化しました");
+
+    } catch(err) {
+
+      console.error(err);
+
+    }
+
+});
 
 </script>
 
