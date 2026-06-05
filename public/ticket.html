@@ -5,18 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>整理券発行ページ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet"/>
+
   <style>
     body {
-      font-family: 'Creepster', cursive;
-      background: black;
-      color: red;
-      text-align: center;
-      padding: 2em;
-      margin: 0;
-      overflow-x: hidden;
-      word-break: break-word;
-    }
+  font-family:
+    "Hiragino Sans",
+    "Yu Gothic",
+    "Meiryo",
+    sans-serif;
+
+  background: black;
+  color: red;
+  text-align: center;
+  padding: 2em;
+  margin: 0;
+  overflow-x: hidden;
+  word-break: break-word;
+}
     h1 { font-size: 2.5em; margin-bottom: 1em; }
     .ticket { font-size: 1.5em; margin-top: 1em; line-height: 1.6; }
     .ticket-number { font-size: 2.4em; font-weight: bold; display: block; margin-top: 0.3em; }
@@ -113,8 +118,26 @@
   <h1>おかだの館</h1>
   <button id="issue-button" onclick="getTicket()" disabled>整理券を発行する</button>
   <div class="ticket" id="result">あなたの整理券番号は <span class="ticket-number" id="ticket-number"></span></div>
-  <div id="estimate-time" style="margin-top: 1em; font-size: 1.2em; color: lightgreen;"></div>
-  <div class="call-status">現在呼び出し中の番号：<span id="current-number">--</span></div>
+  <div
+  id="estimate-time"
+  style="
+    margin-top:20px;
+    font-size:2em;
+    font-weight:bold;
+    color:#7CFF7C;
+  "
+></div>
+  <div class="call-status">
+現在呼び出し中の番号：
+<span id="current-number"
+style="
+font-size:1.4em;
+color:#ffff66;
+font-weight:bold;
+">
+--
+</span>
+</div>
   <div class="waiting-info" id="waiting-info"></div>
   <div class="timer" id="countdown"></div>
   <button id="complete-button" onclick="confirmComplete()">受付を完了する</button>
