@@ -85,6 +85,17 @@
     0 0 20px rgba(255,0,0,0.4);
   margin-bottom: 1em;
 }
+
+#estimate-time {
+  text-align: center;
+}
+
+.estimate-clock {
+  display: block;
+  font-size: 1.5em; /* 大きさ調整 */
+  font-weight: bold;
+  margin-top: 5px;
+}
     
   </style>
 </head>
@@ -397,7 +408,8 @@ async function updateEstimateTime() {
     const estimate = new Date(start.getTime() + total * 60000);
     const h = estimate.getHours().toString().padStart(2, '0');
     const m = estimate.getMinutes().toString().padStart(2, '0');
-    document.getElementById("estimate-time").textContent = `あなたの入場目安時刻 ${h}:${m} 頃`;
+    document.getElementById("estimate-time").innerHTML =
+  `あなたの入場目安時刻<br><span class="estimate-clock">${h}:${m} 頃</span>`;
 
   } catch (e) {
     console.error("入場時間目安の取得に失敗:", e);
@@ -493,7 +505,7 @@ function updateWaitingInfo(current, my) {
 }
 
 function confirmComplete() {
-  if (!confirm("このボタンの処理を受付以外で行った場合この整理券は無効になります。")) return;
+  if (!confirm("このボタンの処理は受付で行ってください。")) return;
 
   fetch("/api/complete", {
     method: "POST",
