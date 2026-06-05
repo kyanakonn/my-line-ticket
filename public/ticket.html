@@ -397,7 +397,7 @@ async function updateEstimateTime() {
     const estimate = new Date(start.getTime() + total * 60000);
     const h = estimate.getHours().toString().padStart(2, '0');
     const m = estimate.getMinutes().toString().padStart(2, '0');
-    document.getElementById("estimate-time").textContent = `入場目安時刻は ${h}:${m} 頃です。`;
+    document.getElementById("estimate-time").textContent = `あなたの入場目安時刻 ${h}:${m} 頃`;
 
   } catch (e) {
     console.error("入場時間目安の取得に失敗:", e);
