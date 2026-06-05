@@ -78,12 +78,12 @@ async function refreshStatus(){
 if(data.preparing){
 
   lamp.className = "preparing";
-  text.textContent = "準備中";
+  text.textContent = "";
 
 }else{
 
   lamp.className = "ok";
-  text.textContent = "準備OK";
+  text.textContent = "";
 
   if(lastPreparingState === true){
     document.getElementById("ready-sound").play()
