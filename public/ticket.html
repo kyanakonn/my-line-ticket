@@ -123,8 +123,10 @@
 
   <div id="closed-modal" class="modal">
     <div class="modal-content">
-      <h2>本日の新規整理券発行を終了しました</h2>
-      <p>本日の整理券発行が上限に達したため、新規受付を終了いたしました。</p>
+      <h2>新規整理券発行を中断しました</h2>
+      <p>整理券発行が規定の数を超えたため、新規受付を中断しています。<br/>
+         新規整理券の発行は予告なしに再開する可能性があります。
+      </p>
       <button onclick="closeClosedModal()">わかりました！</button>
     </div>
   </div>
@@ -542,10 +544,10 @@ async function checkPreparationMode() {
           text-align:center;
           padding:20px;
         ">
-          <h1>準備中</h1>
+          <h1>受付時間外</h1>
           <p style="font-size:1.2em;">
             このサイトでの受付は<br>
-            当日の9時30分を目安に開始します。
+            当日の9時30分頃に開始します。
           </p>
         </div>
       `;
