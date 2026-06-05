@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>受付状況</title>
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#111;
+  font-family:sans-serif;
+}
+
+#lamp{
+  width:250px;
+  height:250px;
+  border-radius:50%;
+  transition:0.3s;
+}
+
+.ok{
+  background:#00ff55;
+  box-shadow:
+    0 0 20px #00ff55,
+    0 0 50px #00ff55,
+    0 0 100px #00ff55;
+}
+
+.preparing{
+  background:#ff3333;
+  box-shadow:
+    0 0 20px #ff3333,
+    0 0 50px #ff3333,
+    0 0 100px #ff3333;
+}
+
+#text{
+  position:absolute;
+  margin-top:350px;
+  color:white;
+  font-size:3rem;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div id="lamp"></div>
+<div id="text">読込中...</div>
+
+<script>
+
+async function refreshStatus(){
+
+  try{
+
+    const res =
+      await fetch("/api/preparation-mode");
+
+    const data =
+      await res.json();
+
+    const lamp =
+      document.getElementById("lamp");
+
+    const text =
+      document.getElementById("text");
+
+    if(data.preparing){
+
+      lamp.className = "preparing";
+      text.textContent = "準備中";
+
+    }else{
+
+      lamp.className = "ok";
+      text.textContent = "準備OK";
+
+    }
+
+  }catch(err){
+
+    console.error(err);
+
+  }
+}
+
+refreshStatus();
+
+setInterval(
+  refreshStatus,
+  3000
+);
+
+</script>
+
+</body>
+</html>
