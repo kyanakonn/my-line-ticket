@@ -172,28 +172,42 @@
     }
 
     async function fetchNumber() {
-      try {
-        const res = await fetch('/api/number');
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
+  try {
+    const res = await fetch('/api/number');
 
-        if (data.number !== currentNumber) {
-  const oldNumber = currentNumber;
-  currentNumber = data.number;
-  numberEl.textContent = currentNumber;
+    if (!res.ok) {
+      throw new Error('Failed to fetch');
+    }
 
-  const rect = numberEl.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  particles.push(...createBloodSplash(centerX, centerY));
-  vibrateScreen();
+    const data = await res.json();
 
-  // 初回表示以外で音を鳴らす
-  if (oldNumber !== null) {
-    callSound.currentTime = 0;
-    callSound.play().catch(err => {
-      console.log("音声再生失敗", err);
-    });
+    if (data.number !== currentNumber) {
+      const oldNumber = currentNumber;
+
+      currentNumber = data.number;
+      numberEl.textContent = currentNumber;
+
+      const rect = numberEl.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      particles.push(...createBloodSplash(centerX, centerY));
+      vibrateScreen();
+
+      // 初回以外は効果音再生
+      if (oldNumber !== null) {
+        callSound.pause();
+        callSound.currentTime = 0;
+
+        callSound.play().catch(err => {
+          console.error('音声再生失敗', err);
+        });
+      }
+    }
+
+  } catch (e) {
+    console.error(e);
+    numberEl.textContent = '取得失敗';
   }
 }
 
