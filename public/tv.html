@@ -43,6 +43,30 @@
       color: red;
     }
 
+    @keyframes pulse {
+  0% {
+    transform: scale(1);
+    text-shadow:
+      0 0 10px red,
+      0 0 20px red;
+  }
+
+  50% {
+    transform: scale(1.08);
+    text-shadow:
+      0 0 30px red,
+      0 0 60px red,
+      0 0 90px crimson;
+  }
+
+  100% {
+    transform: scale(1);
+    text-shadow:
+      0 0 10px red,
+      0 0 20px red;
+  }
+}
+
     #status-message {
       position: absolute;
       bottom: 30px;
@@ -85,10 +109,42 @@
       border-radius: 10px;
       cursor: pointer;
     }
+    
+    .number-change {
+  animation: numberPop 1s;
+}
+
+@keyframes numberPop {
+  0% {
+    transform: scale(0.3);
+  }
+
+  40% {
+    transform: scale(1.8);
+  }
+
+  60% {
+    transform: scale(1.4);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+#flash {
+  position: fixed;
+  inset: 0;
+  background: red;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5000;
+}
   </style>
 </head>
 <body>
-
+  
+  <div id="flash"></div>
   <div id="header-text">現在呼び出し中の番号</div>
   <div id="number">--</div>
   <div id="status-message"><span>読み込み中...</span></div>
@@ -187,13 +243,18 @@
       currentNumber = data.number;
       numberEl.textContent = currentNumber;
 
+      numberEl.classList.remove('number-change');
+      void numberEl.offsetWidth;
+      numberEl.classList.add('number-change');
+      
       const rect = numberEl.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 
       particles.push(...createBloodSplash(centerX, centerY));
       vibrateScreen();
-
+　　　  flashScreen();
+      
       // 初回以外は効果音再生
       if (oldNumber !== null) {
         callSound.pause();
@@ -245,6 +306,21 @@
       });
     }
 
+    function flashScreen() {
+  const flash = document.getElementById('flash');
+
+  flash.animate(
+    [
+      { opacity: 0 },
+      { opacity: 0.7 },
+      { opacity: 0 }
+    ],
+    {
+      duration: 400
+    }
+  );
+}
+    
     async function checkTicketingStatus() {
       try {
         const res = await fetch('/api/ticketing-status');
@@ -285,6 +361,7 @@
     checkTicketingStatus();
     setInterval(fetchNumber, 5000);
     setInterval(checkTicketingStatus, 10000);
+
   </script>
 
 </body>
