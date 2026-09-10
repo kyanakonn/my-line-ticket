@@ -8,7 +8,12 @@
     body { font-family:sans-serif; text-align:center; padding:1em; margin:0; }
     .number-display { font-size:1.2em; color:darkblue; margin:.55em 0; }
     button { padding:.45em 1em; margin:.25em; font-size:.92em; cursor:pointer; }
-    input[type=number],input[type=password],input[type=time],textarea { font-size:1em; padding:.25em; margin:.25em; text-align:center; }
+    input[type=number],input[type=password],input[type=time],textarea {
+      font-size:1em;
+      padding:.25em;
+      margin:.25em;
+      text-align:center;
+    }
     input[type=number] { width:5em; }
     input[type=time] { width:7em; }
     textarea { width:80%; max-width:400px; height:80px; }
@@ -16,16 +21,62 @@
     th,td { border:1px solid #ccc; padding:.35em; }
     th { background:#f0f0f0; }
     #auth-screen { margin-top:4em; }
-    #reset-button { background:#d9534f; color:white; border:none; border-radius:5px; font-weight:bold; margin-top:2em; padding:.65em 1.6em; }
+    #reset-button {
+      background:#d9534f;
+      color:white;
+      border:none;
+      border-radius:5px;
+      font-weight:bold;
+      margin-top:2em;
+      padding:.65em 1.6em;
+    }
     #reset-button:hover { background:#c9302c; }
     #reset-message { margin-top:.7em; font-weight:bold; color:darkred; }
-    .settings-box { max-width:720px; margin:1.3em auto; padding:1em; border:1px solid #ccc; border-radius:8px; background:#fafafa; }
-    .settings-row { display:flex; justify-content:center; align-items:center; gap:.35em; flex-wrap:wrap; margin:.45em 0; }
-    .slot-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:.3em; align-items:center; margin:.3em auto; max-width:520px; }
+    .settings-box {
+      max-width:720px;
+      margin:1.3em auto;
+      padding:1em;
+      border:1px solid #ccc;
+      border-radius:8px;
+      background:#fafafa;
+    }
+    .settings-row {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:.35em;
+      flex-wrap:wrap;
+      margin:.45em 0;
+    }
+    .slot-row {
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr auto;
+      gap:.3em;
+      align-items:center;
+      margin:.3em auto;
+      max-width:520px;
+    }
     .slot-row input { margin:0; }
-    .slot-head { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:.3em; max-width:520px; margin:.45em auto 0; font-size:.82em; font-weight:bold; }
-    .small-note { font-size:.8em; color:#555; margin:.35em 0; }
-    .status { font-weight:bold; color:darkgreen; min-height:1.2em; }
+    .slot-head {
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr auto;
+      gap:.3em;
+      max-width:520px;
+      margin:.45em auto 0;
+      font-size:.82em;
+      font-weight:bold;
+    }
+    .small-note {
+      font-size:.8em;
+      color:#555;
+      margin:.35em 0;
+    }
+    .status {
+      font-weight:bold;
+      color:darkgreen;
+      min-height:1.2em;
+    }
+
     @media (max-width:600px) {
       body { padding:.55em .35em; }
       h1 { font-size:1.35em; }
@@ -33,14 +84,19 @@
       .number-display { font-size:1em; }
       table { width:100%; font-size:.78em; }
       th,td { padding:.25em .12em; }
-      .slot-row,.slot-head { grid-template-columns:1fr 1fr 1fr auto; font-size:.82em; }
+      .slot-row,.slot-head {
+        grid-template-columns:1fr 1fr 1fr auto;
+        font-size:.82em;
+      }
       .slot-row input[type=time] { width:5.8em; }
       .slot-row input[type=number] { width:3.3em; }
       button { font-size:.82em; }
     }
   </style>
 </head>
+
 <body>
+
   <div id="auth-screen">
     <h2>管理者ページにアクセスするにはパスワードを入力してください</h2>
     <input type="password" id="password-input" placeholder="パスワード" />
@@ -48,17 +104,32 @@
     <p id="auth-message" style="color:red;"></p>
   </div>
 
+
   <div id="admin-screen" style="display:none;">
+
     <h1>管理者用：呼び出し操作</h1>
 
-    <div class="number-display">現在の呼び出し番号：<span id="current-number">--</span></div>
-    <div class="number-display">最後に発行された整理券番号：<span id="last-ticket-number">--</span></div>
-    <div class="number-display">発行人数の合計：<span id="total-issued">--</span></div>
+    <div class="number-display">
+      現在の呼び出し番号：
+      <span id="current-number">--</span>
+    </div>
+
+    <div class="number-display">
+      最後に発行された整理券番号：
+      <span id="last-ticket-number">--</span>
+    </div>
+
+    <div class="number-display">
+      発行人数の合計：
+      <span id="total-issued">--</span>
+    </div>
+
 
     <div>
       <button onclick="changeNumber(-1)">戻る（-1）</button>
       <button onclick="changeNumber(1)">進む（+1）</button>
     </div>
+
 
     <div style="margin-top:1em;">
       <label for="set-number">番号を直接設定：</label>
@@ -66,239 +137,1241 @@
       <button onclick="setNumber()">変更</button>
     </div>
 
+
     <p id="message"></p>
 
+
     <div class="settings-box">
+
       <h2>整理券の発行時間・枚数</h2>
+
       <div class="settings-row">
-        <label>開始 <input type="time" id="ticket-start" value="09:30"></label>
+        <label>
+          開始
+          <input type="time" id="ticket-start" value="09:30">
+        </label>
+
         <span>～</span>
-        <label>終了 <input type="time" id="ticket-end" value="13:00"></label>
+
+        <label>
+          終了
+          <input type="time" id="ticket-end" value="13:00">
+        </label>
       </div>
-      <div class="small-note">開始～終了だけ設定する場合、時間区切りの枚数上限はありません。</div>
-      <div class="slot-head"><span>開始</span><span>終了</span><span>上限枚数</span><span></span></div>
+
+      <div class="small-note">
+        開始～終了だけ設定する場合、時間区切りの枚数上限はありません。
+      </div>
+
+      <div class="slot-head">
+        <span>開始</span>
+        <span>終了</span>
+        <span>上限枚数</span>
+        <span></span>
+      </div>
+
       <div id="slot-list"></div>
+
       <button onclick="addSlot()">＋時間区切りを追加</button>
-      <button onclick="saveTicketSettings()" style="background:#337ab7;color:white;">発行設定を保存</button>
+
+      <button
+        onclick="saveTicketSettings()"
+        style="background:#337ab7;color:white;"
+      >
+        発行設定を保存
+      </button>
+
       <p id="ticket-settings-message" class="status"></p>
+
       <div id="ticket-settings-summary" class="small-note"></div>
+
     </div>
 
-    <h2>任意の整理券番号に通知を送信<br><small>(公式LINE経由でないと使えません)</small></h2>
-    <input type="number" id="notifyNumber" placeholder="整理券番号" />
+
+    <h2>
+      任意の整理券番号に通知を送信<br>
+      <small>(公式LINE経由でないと使えません)</small>
+    </h2>
+
+    <input
+      type="number"
+      id="notifyNumber"
+      placeholder="整理券番号"
+    />
+
     <br />
-    <textarea id="notifyMessage" placeholder="通知メッセージ"></textarea>
+
+    <textarea
+      id="notifyMessage"
+      placeholder="通知メッセージ"
+    ></textarea>
+
     <br />
+
     <button onclick="sendNotification()">通知を送信</button>
+
     <p id="notify-status" style="color:green;"></p>
 
+
     <h2>制限時間を解除する</h2>
-    <input type="number" id="unlock-ticket-number" placeholder="整理券番号" />
-    <button onclick="unlockLimit()">制限時間を解除する</button>
+
+    <input
+      type="number"
+      id="unlock-ticket-number"
+      placeholder="整理券番号"
+    />
+
+    <button onclick="unlockLimit()">
+      制限時間を解除する
+    </button>
+
     <p id="unlock-status" style="color:darkgreen;"></p>
 
+
     <h2>整理券発行記録</h2>
+
     <table>
-      <thead><tr><th>整理券番号</th><th>発行日時</th><th>受付状態</th></tr></thead>
+      <thead>
+        <tr>
+          <th>整理券番号</th>
+          <th>発行日時</th>
+          <th>受付状態</th>
+        </tr>
+      </thead>
+
       <tbody id="log-table-body"></tbody>
     </table>
 
-    <div style="margin-top:1em;">
-      <button id="prepare-button" onclick="setPreparationMode()" style="background:#f0ad4e;color:white;font-weight:bold;">準備中にする</button>
-      <button id="start-button" onclick="startReception()" style="background:#5bc0de;color:white;font-weight:bold;">受付開始</button>
-    </div>
 
     <div style="margin-top:1em;">
-      <button id="close-ticketing-button" onclick="closeTicketing()" style="background:#d9534f;color:white;font-weight:bold;">新規整理券発行を中断する</button>
-      <button id="open-ticketing-button" onclick="openTicketing()" style="background:#5cb85c;color:white;font-weight:bold;">新規整理券発行を再開する</button>
+
+      <button
+        id="prepare-button"
+        onclick="setPreparationMode()"
+        style="background:#f0ad4e;color:white;font-weight:bold;"
+      >
+        準備中にする
+      </button>
+
+      <button
+        id="start-button"
+        onclick="startReception()"
+        style="background:#5bc0de;color:white;font-weight:bold;"
+      >
+        受付開始
+      </button>
+
     </div>
 
-    <button id="reset-button" onclick="resetAll()">すべてリセット</button>
+
+    <div style="margin-top:1em;">
+
+      <button
+        id="close-ticketing-button"
+        onclick="closeTicketing()"
+        style="background:#d9534f;color:white;font-weight:bold;"
+      >
+        新規整理券発行を中断する
+      </button>
+
+      <button
+        id="open-ticketing-button"
+        onclick="openTicketing()"
+        style="background:#5cb85c;color:white;font-weight:bold;"
+      >
+        新規整理券発行を再開する
+      </button>
+
+    </div>
+
+
+    <button
+      id="reset-button"
+      onclick="resetAll()"
+    >
+      すべてリセット
+    </button>
+
     <p id="reset-message"></p>
+
   </div>
 
+
 <script>
+
 const correctPassword = "kimu3310";
 
+
+/* =========================================
+   パスワード確認
+========================================= */
+
 function checkPassword() {
-  const input = document.getElementById("password-input").value;
-  const msg = document.getElementById("auth-message");
+
+  const input =
+    document.getElementById("password-input").value;
+
+  const msg =
+    document.getElementById("auth-message");
+
   if (input === correctPassword) {
+
     document.getElementById("auth-screen").style.display = "none";
+
     document.getElementById("admin-screen").style.display = "block";
+
+    /*
+      ★修正部分
+
+      管理画面を開いた最初にだけ
+      サーバーから発行設定を読み込む。
+
+      これにより、5秒ごとの自動更新で
+      入力中の時間が上書きされなくなる。
+    */
+    loadTicketSettings();
+
     refreshAll();
+
     setInterval(refreshAll,5000);
-  } else msg.textContent = "パスワードが違います。";
+
+  } else {
+
+    msg.textContent = "パスワードが違います。";
+
+  }
 }
 
-function createSlotRow(slot={start:"",end:"",capacity:""}) {
+
+/* =========================================
+   時間区切り行を作成
+========================================= */
+
+function createSlotRow(
+  slot={start:"",end:"",capacity:""}
+) {
+
   const row = document.createElement("div");
+
   row.className = "slot-row";
+
   row.innerHTML = `
-    <input type="time" class="slot-start" value="${slot.start || ""}">
-    <input type="time" class="slot-end" value="${slot.end || ""}">
-    <input type="number" class="slot-capacity" min="1" placeholder="無制限" value="${slot.capacity ?? ""}">
-    <button type="button" onclick="this.parentElement.remove()">削除</button>
+    <input
+      type="time"
+      class="slot-start"
+      value="${slot.start || ""}"
+    >
+
+    <input
+      type="time"
+      class="slot-end"
+      value="${slot.end || ""}"
+    >
+
+    <input
+      type="number"
+      class="slot-capacity"
+      min="1"
+      placeholder="無制限"
+      value="${slot.capacity ?? ""}"
+    >
+
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+    >
+      削除
+    </button>
   `;
+
   return row;
 }
 
-function addSlot(slot={start:"",end:"",capacity:""}) {
-  document.getElementById("slot-list").appendChild(createSlotRow(slot));
+
+/* =========================================
+   時間区切り追加
+========================================= */
+
+function addSlot(
+  slot={start:"",end:"",capacity:""}
+) {
+
+  document
+    .getElementById("slot-list")
+    .appendChild(createSlotRow(slot));
+
 }
+
+
+/* =========================================
+   発行設定読み込み
+========================================= */
 
 async function loadTicketSettings() {
+
   try {
-    const res = await fetch("/api/ticket-settings");
-    const data = await res.json();
-    document.getElementById("ticket-start").value = data.start || "09:30";
-    document.getElementById("ticket-end").value = data.end || "13:00";
-    const list = document.getElementById("slot-list");
+
+    const res =
+      await fetch("/api/ticket-settings");
+
+    const data =
+      await res.json();
+
+    document.getElementById("ticket-start").value =
+      data.start || "09:30";
+
+    document.getElementById("ticket-end").value =
+      data.end || "13:00";
+
+
+    const list =
+      document.getElementById("slot-list");
+
     list.innerHTML = "";
-    (data.slots || []).forEach(slot => addSlot(slot));
+
+
+    (data.slots || []).forEach(slot => {
+
+      addSlot(slot);
+
+    });
+
+
     updateSettingsSummary(data);
+
   } catch(err) {
-    document.getElementById("ticket-settings-message").textContent = "発行設定の取得に失敗しました。";
+
+    document.getElementById(
+      "ticket-settings-message"
+    ).textContent =
+      "発行設定の取得に失敗しました。";
+
   }
+
 }
+
+
+/* =========================================
+   発行設定の表示
+========================================= */
 
 function updateSettingsSummary(data) {
-  const summary = document.getElementById("ticket-settings-summary");
-  const slots = data.slots || [];
-  let text = `発行時間：${data.start || "--:--"}～${data.end || "--:--"} / 1枚あたり標準${data.defaultTicketMinutes || 6}分`;
+
+  const summary =
+    document.getElementById(
+      "ticket-settings-summary"
+    );
+
+  const slots =
+    data.slots || [];
+
+
+  let text =
+    `発行時間：${data.start || "--:--"}～${data.end || "--:--"} / 1枚あたり標準${data.defaultTicketMinutes || 6}分`;
+
+
   if (slots.length) {
-    text += " / 区切り：" + slots.map(s => `${s.start}～${s.end}：${s.capacity == null ? "無制限" : s.capacity + "枚"}`).join("、");
-  } else text += " / 区切り上限なし";
+
+    text +=
+      " / 区切り：" +
+      slots
+        .map(
+          s =>
+            `${s.start}～${s.end}：${
+              s.capacity == null
+                ? "無制限"
+                : s.capacity + "枚"
+            }`
+        )
+        .join("、");
+
+  } else {
+
+    text += " / 区切り上限なし";
+
+  }
+
+
   summary.textContent = text;
+
 }
+
+
+/* =========================================
+   発行設定保存
+========================================= */
 
 async function saveTicketSettings() {
-  const start = document.getElementById("ticket-start").value;
-  const end = document.getElementById("ticket-end").value;
-  const slots = [...document.querySelectorAll("#slot-list .slot-row")].map(row => ({
-    start: row.querySelector(".slot-start").value,
-    end: row.querySelector(".slot-end").value,
-    capacity: row.querySelector(".slot-capacity").value
-  })).filter(s => s.start || s.end || s.capacity);
 
-  const status = document.getElementById("ticket-settings-message");
+  const start =
+    document.getElementById("ticket-start").value;
+
+  const end =
+    document.getElementById("ticket-end").value;
+
+
+  const slots =
+    [
+      ...document.querySelectorAll(
+        "#slot-list .slot-row"
+      )
+    ]
+      .map(row => ({
+
+        start:
+          row.querySelector(".slot-start").value,
+
+        end:
+          row.querySelector(".slot-end").value,
+
+        capacity:
+          row.querySelector(".slot-capacity").value
+
+      }))
+      .filter(
+        s =>
+          s.start ||
+          s.end ||
+          s.capacity
+      );
+
+
+  const status =
+    document.getElementById(
+      "ticket-settings-message"
+    );
+
+
   try {
-    const res = await fetch("/api/ticket-settings", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({start,end,slots})
-    });
-    const data = await res.json();
-    status.textContent = data.message || (res.ok ? "保存しました。" : "保存に失敗しました。");
+
+    const res =
+      await fetch(
+        "/api/ticket-settings",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:
+            JSON.stringify({
+              start,
+              end,
+              slots
+            })
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    status.textContent =
+      data.message ||
+      (
+        res.ok
+          ? "保存しました。"
+          : "保存に失敗しました。"
+      );
+
+
     if (res.ok) {
+
       status.style.color = "darkgreen";
+
       updateSettingsSummary(data);
-    } else status.style.color = "darkred";
+
+    } else {
+
+      status.style.color = "darkred";
+
+    }
+
   } catch(err) {
-    status.textContent = "設定の保存に失敗しました。";
+
+    status.textContent =
+      "設定の保存に失敗しました。";
+
     status.style.color = "darkred";
+
   }
+
 }
+
+
+/* =========================================
+   管理画面データ更新
+========================================= */
 
 async function refreshAll() {
+
   try {
-    const [numberRes,ticketRes,logRes,statusRes] = await Promise.all([
-      fetch("/api/number"), fetch("/api/ticket/last"), fetch("/api/ticket/log"), fetch("/api/ticketing-status")
-    ]);
-    if (!numberRes.ok || !ticketRes.ok || !logRes.ok || !statusRes.ok) throw new Error("API通信に失敗しました");
-    const numberData = await numberRes.json();
-    const ticketData = await ticketRes.json();
-    const logData = await logRes.json();
-    const statusData = await statusRes.json();
 
-    document.getElementById("current-number").textContent = numberData.number;
-    document.getElementById("last-ticket-number").textContent = ticketData.last;
-    document.getElementById("total-issued").textContent = logData.length;
+    const [
+      numberRes,
+      ticketRes,
+      logRes,
+      statusRes
+    ] =
+      await Promise.all([
 
-    const tbody = document.getElementById("log-table-body");
+        fetch("/api/number"),
+
+        fetch("/api/ticket/last"),
+
+        fetch("/api/ticket/log"),
+
+        fetch("/api/ticketing-status")
+
+      ]);
+
+
+    if (
+      !numberRes.ok ||
+      !ticketRes.ok ||
+      !logRes.ok ||
+      !statusRes.ok
+    ) {
+
+      throw new Error(
+        "API通信に失敗しました"
+      );
+
+    }
+
+
+    const numberData =
+      await numberRes.json();
+
+    const ticketData =
+      await ticketRes.json();
+
+    const logData =
+      await logRes.json();
+
+    const statusData =
+      await statusRes.json();
+
+
+    document.getElementById(
+      "current-number"
+    ).textContent =
+      numberData.number;
+
+
+    document.getElementById(
+      "last-ticket-number"
+    ).textContent =
+      ticketData.last;
+
+
+    document.getElementById(
+      "total-issued"
+    ).textContent =
+      logData.length;
+
+
+    const tbody =
+      document.getElementById(
+        "log-table-body"
+      );
+
     tbody.innerHTML = "";
-    logData.slice().reverse().forEach(item => {
-      const row = document.createElement("tr");
-      const tdNumber = document.createElement("td"); tdNumber.textContent = item.number;
-      const tdTime = document.createElement("td"); tdTime.textContent = new Date(item.timestamp).toLocaleString();
-      const tdComplete = document.createElement("td"); tdComplete.textContent = item.completed ? "完了" : "— 未完了"; tdComplete.style.color = item.completed ? "green" : "gray";
-      row.append(tdNumber,tdTime,tdComplete); tbody.appendChild(row);
-    });
 
-    document.getElementById("close-ticketing-button").disabled = statusData.closed;
-    document.getElementById("open-ticketing-button").disabled = !statusData.closed;
-    document.getElementById("reset-message").textContent = "";
-    loadTicketSettings();
+
+    logData
+      .slice()
+      .reverse()
+      .forEach(item => {
+
+        const row =
+          document.createElement("tr");
+
+
+        const tdNumber =
+          document.createElement("td");
+
+        tdNumber.textContent =
+          item.number;
+
+
+        const tdTime =
+          document.createElement("td");
+
+        tdTime.textContent =
+          new Date(
+            item.timestamp
+          ).toLocaleString();
+
+
+        const tdComplete =
+          document.createElement("td");
+
+        tdComplete.textContent =
+          item.completed
+            ? "完了"
+            : "— 未完了";
+
+        tdComplete.style.color =
+          item.completed
+            ? "green"
+            : "gray";
+
+
+        row.append(
+          tdNumber,
+          tdTime,
+          tdComplete
+        );
+
+
+        tbody.appendChild(row);
+
+      });
+
+
+    document.getElementById(
+      "close-ticketing-button"
+    ).disabled =
+      statusData.closed;
+
+
+    document.getElementById(
+      "open-ticketing-button"
+    ).disabled =
+      !statusData.closed;
+
+
+    document.getElementById(
+      "reset-message"
+    ).textContent = "";
+
+
+    /*
+      ★重要
+
+      ここにあった
+
+      loadTicketSettings();
+
+      を削除しています。
+
+      これによって5秒ごとの更新で
+      開始・終了時間が上書きされません。
+    */
+
   } catch(error) {
+
     console.error(error);
-    document.getElementById("message").textContent = "データの取得に失敗しました。";
+
+    document.getElementById(
+      "message"
+    ).textContent =
+      "データの取得に失敗しました。";
+
   }
+
 }
+
+
+/* =========================================
+   呼び出し番号変更
+========================================= */
 
 async function changeNumber(diff) {
+
   try {
-    const res = await fetch("/api/call",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({diff})});
-    const data = await res.json(); document.getElementById("message").textContent = data.message || ""; refreshAll();
-  } catch { document.getElementById("message").textContent = "番号変更に失敗しました。"; }
-}
-async function setNumber() {
-  const num = parseInt(document.getElementById("set-number").value);
-  if (isNaN(num) || num < 0) { document.getElementById("message").textContent = "有効な番号を入力してください。"; return; }
-  try {
-    const res = await fetch("/api/set",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({number:num})});
-    const data = await res.json(); document.getElementById("message").textContent = data.message || ""; refreshAll();
-  } catch { document.getElementById("message").textContent = "番号設定に失敗しました。"; }
-}
-async function sendNotification() {
-  const number = parseInt(document.getElementById("notifyNumber").value);
-  const message = document.getElementById("notifyMessage").value.trim();
-  const notifyEl = document.getElementById("notify-status");
-  if (isNaN(number) || number <= 0) { notifyEl.textContent = "有効な整理券番号を入力してください。"; return; }
-  if (!message.length) { notifyEl.textContent = "通知メッセージを入力してください。"; return; }
-  try {
-    const res = await fetch("/api/notify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({number,message})});
-    const data = await res.json(); notifyEl.textContent = data.message || "通知を送信しました。";
-  } catch(err) { notifyEl.textContent = "通知送信中にエラーが発生しました。"; console.error(err); }
-}
-async function unlockLimit() {
-  const num = parseInt(document.getElementById("unlock-ticket-number").value);
-  const status = document.getElementById("unlock-status");
-  if (isNaN(num) || num <= 0) { status.textContent = "有効な整理券番号を入力してください。"; return; }
-  try {
-    const res = await fetch("/api/unlock-limit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({number:num})});
-    const data = await res.json(); status.textContent = data.success ? `番号 ${num} の制限時間を解除しました。` : data.message || "解除に失敗しました。";
-  } catch(err) { status.textContent = "サーバーに接続できませんでした。"; console.error(err); }
-}
-async function resetAll() {
-  if (!confirm("本当にすべての整理券番号と記録をリセットしますか？")) return;
-  try {
-    const res = await fetch("/api/reset",{method:"POST",headers:{"Content-Type":"application/json"}});
-    const data = await res.json();
-    document.getElementById("reset-message").textContent = res.ok ? "リセットに成功しました。" : data.message || "リセットに失敗しました。";
-    if (res.ok) await loadTicketSettings();
+
+    const res =
+      await fetch(
+        "/api/call",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:
+            JSON.stringify({diff})
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    document.getElementById(
+      "message"
+    ).textContent =
+      data.message || "";
+
+
     refreshAll();
-  } catch(err) { document.getElementById("reset-message").textContent = "リセット処理中にエラーが発生しました。"; console.error(err); }
+
+  } catch {
+
+    document.getElementById(
+      "message"
+    ).textContent =
+      "番号変更に失敗しました。";
+
+  }
+
 }
+
+
+/* =========================================
+   番号を直接設定
+========================================= */
+
+async function setNumber() {
+
+  const num =
+    parseInt(
+      document.getElementById(
+        "set-number"
+      ).value
+    );
+
+
+  if (
+    isNaN(num) ||
+    num < 0
+  ) {
+
+    document.getElementById(
+      "message"
+    ).textContent =
+      "有効な番号を入力してください。";
+
+    return;
+
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        "/api/set",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:
+            JSON.stringify({
+              number:num
+            })
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    document.getElementById(
+      "message"
+    ).textContent =
+      data.message || "";
+
+
+    refreshAll();
+
+  } catch {
+
+    document.getElementById(
+      "message"
+    ).textContent =
+      "番号設定に失敗しました。";
+
+  }
+
+}
+
+
+/* =========================================
+   通知送信
+========================================= */
+
+async function sendNotification() {
+
+  const number =
+    parseInt(
+      document.getElementById(
+        "notifyNumber"
+      ).value
+    );
+
+
+  const message =
+    document.getElementById(
+      "notifyMessage"
+    ).value.trim();
+
+
+  const notifyEl =
+    document.getElementById(
+      "notify-status"
+    );
+
+
+  if (
+    isNaN(number) ||
+    number <= 0
+  ) {
+
+    notifyEl.textContent =
+      "有効な整理券番号を入力してください。";
+
+    return;
+
+  }
+
+
+  if (!message.length) {
+
+    notifyEl.textContent =
+      "通知メッセージを入力してください。";
+
+    return;
+
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        "/api/notify",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:
+            JSON.stringify({
+              number,
+              message
+            })
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    notifyEl.textContent =
+      data.message ||
+      "通知を送信しました。";
+
+  } catch(err) {
+
+    notifyEl.textContent =
+      "通知送信中にエラーが発生しました。";
+
+    console.error(err);
+
+  }
+
+}
+
+
+/* =========================================
+   制限時間解除
+========================================= */
+
+async function unlockLimit() {
+
+  const num =
+    parseInt(
+      document.getElementById(
+        "unlock-ticket-number"
+      ).value
+    );
+
+
+  const status =
+    document.getElementById(
+      "unlock-status"
+    );
+
+
+  if (
+    isNaN(num) ||
+    num <= 0
+  ) {
+
+    status.textContent =
+      "有効な整理券番号を入力してください。";
+
+    return;
+
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        "/api/unlock-limit",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:
+            JSON.stringify({
+              number:num
+            })
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    status.textContent =
+      data.success
+        ? `番号 ${num} の制限時間を解除しました。`
+        : data.message ||
+          "解除に失敗しました。";
+
+
+  } catch(err) {
+
+    status.textContent =
+      "サーバーに接続できませんでした。";
+
+    console.error(err);
+
+  }
+
+}
+
+
+/* =========================================
+   全体リセット
+========================================= */
+
+async function resetAll() {
+
+  if (
+    !confirm(
+      "本当にすべての整理券番号と記録をリセットしますか？"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        "/api/reset",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          }
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    document.getElementById(
+      "reset-message"
+    ).textContent =
+      res.ok
+        ? "リセットに成功しました。"
+        : data.message ||
+          "リセットに失敗しました。";
+
+
+    /*
+      リセット成功時はサーバー側の
+      09:30～13:00 が画面にも反映される。
+    */
+    if (res.ok) {
+
+      await loadTicketSettings();
+
+    }
+
+
+    refreshAll();
+
+
+  } catch(err) {
+
+    document.getElementById(
+      "reset-message"
+    ).textContent =
+      "リセット処理中にエラーが発生しました。";
+
+    console.error(err);
+
+  }
+
+}
+
+
+/* =========================================
+   新規整理券発行を中断
+========================================= */
+
 async function closeTicketing() {
-  if (!confirm("本日の新規整理券発行を終了しますか？")) return;
-  try { const res=await fetch("/api/close-ticketing",{method:"POST",headers:{"Content-Type":"application/json"}}); const data=await res.json(); alert(data.message||"本日の新規整理券発行を終了しました。"); refreshAll(); }
-  catch(err){ alert("発行停止に失敗しました。"); console.error(err); }
+
+  if (
+    !confirm(
+      "本日の新規整理券発行を終了しますか？"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        "/api/close-ticketing",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          }
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    alert(
+      data.message ||
+      "本日の新規整理券発行を終了しました。"
+    );
+
+
+    refreshAll();
+
+
+  } catch(err) {
+
+    alert(
+      "発行停止に失敗しました。"
+    );
+
+    console.error(err);
+
+  }
+
 }
+
+
+/* =========================================
+   新規整理券発行を再開
+========================================= */
+
 async function openTicketing() {
-  if (!confirm("本日の新規整理券発行を再開しますか？")) return;
-  try { const res=await fetch("/api/open-ticketing",{method:"POST",headers:{"Content-Type":"application/json"}}); const data=await res.json(); alert(data.message||"本日の新規整理券発行を再開しました。"); refreshAll(); }
-  catch(err){ alert("発行再開に失敗しました。"); console.error(err); }
+
+  if (
+    !confirm(
+      "本日の新規整理券発行を再開しますか？"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        "/api/open-ticketing",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          }
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    alert(
+      data.message ||
+      "本日の新規整理券発行を再開しました。"
+    );
+
+
+    refreshAll();
+
+
+  } catch(err) {
+
+    alert(
+      "発行再開に失敗しました。"
+    );
+
+    console.error(err);
+
+  }
+
 }
+
+
+/* =========================================
+   準備中モード
+========================================= */
+
 async function setPreparationMode() {
-  if (!confirm("準備中モードにしますか？")) return;
-  try { const res=await fetch("/api/preparation-mode",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({preparing:true})}); const data=await res.json(); alert(data.message||"準備中モードにしました"); }
-  catch(err){ console.error(err); alert("設定に失敗しました"); }
+
+  if (
+    !confirm(
+      "準備中モードにしますか？"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        "/api/preparation-mode",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:
+            JSON.stringify({
+              preparing:true
+            })
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    alert(
+      data.message ||
+      "準備中モードにしました"
+    );
+
+
+  } catch(err) {
+
+    console.error(err);
+
+    alert(
+      "設定に失敗しました"
+    );
+
+  }
+
 }
+
+
+/* =========================================
+   受付開始
+========================================= */
+
 async function startReception() {
-  if (!confirm("受付を開始しますか？")) return;
-  try { const res=await fetch("/api/preparation-mode",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({preparing:false})}); const data=await res.json(); alert(data.message||"受付を開始しました"); }
-  catch(err){ console.error(err); alert("設定に失敗しました"); }
+
+  if (
+    !confirm(
+      "受付を開始しますか？"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        "/api/preparation-mode",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":"application/json"
+          },
+
+          body:
+            JSON.stringify({
+              preparing:false
+            })
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    alert(
+      data.message ||
+      "受付を開始しました"
+    );
+
+
+  } catch(err) {
+
+    console.error(err);
+
+    alert(
+      "設定に失敗しました"
+    );
+
+  }
+
 }
+
 </script>
+
 </body>
 </html>
