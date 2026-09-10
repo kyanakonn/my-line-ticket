@@ -228,7 +228,7 @@ async function refreshAll() {
     document.getElementById("close-ticketing-button").disabled = statusData.closed;
     document.getElementById("open-ticketing-button").disabled = !statusData.closed;
     document.getElementById("reset-message").textContent = "";
-    loadTicketSettings();
+ 
   } catch(error) {
     console.error(error);
     document.getElementById("message").textContent = "データの取得に失敗しました。";
