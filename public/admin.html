@@ -126,7 +126,8 @@ function checkPassword() {
   if (input === correctPassword) {
     document.getElementById("auth-screen").style.display = "none";
     document.getElementById("admin-screen").style.display = "block";
-    refreshAll();
+    loadTicketSettings();
+　　 refreshAll();
     setInterval(refreshAll,5000);
   } else msg.textContent = "パスワードが違います。";
 }
