@@ -15,13 +15,18 @@ let resetFlag = false;
 let preparing = true;
 
 // 整理券の発行時間設定
+// start / end は HH:MM。
+// slots は任意で、capacity が空ならその時間帯は無制限。
 let ticketSettings = {
   start: "09:30",
   end: "13:00",
   slots: []
 };
 
+// 1枚あたりの標準所要時間
 const DEFAULT_TICKET_MINUTES = 6;
+
+// 時刻判定は日本時間
 const TIME_ZONE = "Asia/Tokyo";
 
 const LINE_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN;
@@ -30,7 +35,7 @@ const LINE_REPLY_URL = "https://api.line.me/v2/bot/message/reply";
 
 
 // =========================================
-// 時刻関係
+// 時刻関連
 // =========================================
 
 function normalizeTime(value) {
@@ -49,6 +54,7 @@ function normalizeTime(value) {
   return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 }
 
+
 function timeToMinutes(value) {
   const normalized = normalizeTime(value);
 
@@ -58,6 +64,7 @@ function timeToMinutes(value) {
 
   return h * 60 + m;
 }
+
 
 function formatTime(minutes) {
   const h = Math.floor(minutes / 60) % 24;
@@ -94,9 +101,11 @@ function getJstDateAndMinutes(date = new Date()) {
   return {
     dateKey:
       `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+
     minutes: hour * 60 + minute
   };
 }
+
 
 function ticketDateKey(ticket) {
   return getJstDateAndMinutes(
@@ -106,7 +115,7 @@ function ticketDateKey(ticket) {
 
 
 // =========================================
-// 時間帯ごとの発券枚数
+// 時間帯ごとの発行枚数
 // =========================================
 
 function getIssuedCountForSlot(slot, dateKey) {
@@ -118,6 +127,7 @@ function getIssuedCountForSlot(slot, dateKey) {
   }
 
   return ticketLog.filter(ticket => {
+
     if (ticketDateKey(ticket) !== dateKey) {
       return false;
     }
@@ -128,12 +138,13 @@ function getIssuedCountForSlot(slot, dateKey) {
       ).minutes;
 
     return minutes >= start && minutes < end;
+
   }).length;
 }
 
 
 // =========================================
-// 次に発券可能になる時刻
+// 次に発行可能になる時間
 // =========================================
 
 function getNextAvailableTime(nowMinutes, dateKey) {
@@ -141,40 +152,50 @@ function getNextAvailableTime(nowMinutes, dateKey) {
   const start = timeToMinutes(ticketSettings.start);
   const end = timeToMinutes(ticketSettings.end);
 
-  if (start === null || end === null || start >= end) {
+  if (
+    start === null ||
+    end === null ||
+    start >= end
+  ) {
     return null;
   }
 
+
+  // 全体の開始前
   if (nowMinutes < start) {
     return formatTime(start);
   }
 
+
+  // 全体の終了後
   if (nowMinutes >= end) {
     return null;
   }
 
-  const slots =
-    Array.isArray(ticketSettings.slots)
-      ? ticketSettings.slots
-          .map(slot => ({
-            start: normalizeTime(slot.start),
-            end: normalizeTime(slot.end),
 
-            capacity:
-              slot.capacity === null ||
-              slot.capacity === "" ||
-              typeof slot.capacity === "undefined"
-                ? null
-                : Number(slot.capacity)
-          }))
-          .filter(slot => slot.start && slot.end)
-          .sort(
-            (a, b) =>
-              timeToMinutes(a.start) -
-              timeToMinutes(b.start)
-          )
-      : [];
+  const slots = Array.isArray(ticketSettings.slots)
+    ? ticketSettings.slots
+        .map(slot => ({
+          start: normalizeTime(slot.start),
+          end: normalizeTime(slot.end),
 
+          capacity:
+            slot.capacity === null ||
+            slot.capacity === "" ||
+            typeof slot.capacity === "undefined"
+              ? null
+              : Number(slot.capacity)
+        }))
+        .filter(slot => slot.start && slot.end)
+        .sort(
+          (a, b) =>
+            timeToMinutes(a.start) -
+            timeToMinutes(b.start)
+        )
+    : [];
+
+
+  // 設定された時間帯を確認
   for (const slot of slots) {
 
     const slotStart =
@@ -191,6 +212,7 @@ function getNextAvailableTime(nowMinutes, dateKey) {
       continue;
     }
 
+
     if (
       slotEnd <= start ||
       slotStart >= end
@@ -198,25 +220,32 @@ function getNextAvailableTime(nowMinutes, dateKey) {
       continue;
     }
 
+
     const actualStart =
       Math.max(slotStart, start);
 
     const actualEnd =
       Math.min(slotEnd, end);
 
+
     if (actualStart >= actualEnd) {
       continue;
     }
 
+
+    // 次の時間帯がまだ始まっていない
     if (nowMinutes < actualStart) {
       return formatTime(actualStart);
     }
 
+
+    // 現在の時間帯
     if (
       nowMinutes >= actualStart &&
       nowMinutes < actualEnd
     ) {
 
+      // 上限なし
       if (
         slot.capacity === null ||
         getIssuedCountForSlot(
@@ -227,10 +256,13 @@ function getNextAvailableTime(nowMinutes, dateKey) {
         return formatTime(nowMinutes);
       }
 
+      // 上限に達しているので次へ
       continue;
     }
   }
 
+
+  // 現在時刻以降の空き時間帯を探す
   for (const slot of slots) {
 
     const slotStart =
@@ -247,11 +279,13 @@ function getNextAvailableTime(nowMinutes, dateKey) {
       continue;
     }
 
+
     const actualStart =
       Math.max(slotStart, start);
 
     const actualEnd =
       Math.min(slotEnd, end);
+
 
     if (
       actualStart < nowMinutes ||
@@ -259,6 +293,7 @@ function getNextAvailableTime(nowMinutes, dateKey) {
     ) {
       continue;
     }
+
 
     if (
       slot.capacity === null ||
@@ -271,12 +306,13 @@ function getNextAvailableTime(nowMinutes, dateKey) {
     }
   }
 
+
   return null;
 }
 
 
 // =========================================
-// 現在の発券可能状態
+// 現在の発行可否
 // =========================================
 
 function getTicketAvailability() {
@@ -286,12 +322,15 @@ function getTicketAvailability() {
     minutes: nowMinutes
   } = getJstDateAndMinutes();
 
+
   const start =
     timeToMinutes(ticketSettings.start);
 
   const end =
     timeToMinutes(ticketSettings.end);
 
+
+  // 設定がおかしい
   if (
     start === null ||
     end === null ||
@@ -307,6 +346,8 @@ function getTicketAvailability() {
     };
   }
 
+
+  // 開始前
   if (nowMinutes < start) {
 
     return {
@@ -318,6 +359,8 @@ function getTicketAvailability() {
     };
   }
 
+
+  // 終了後
   if (nowMinutes >= end) {
 
     return {
@@ -329,29 +372,31 @@ function getTicketAvailability() {
     };
   }
 
-  const slots =
-    Array.isArray(ticketSettings.slots)
-      ? ticketSettings.slots
-          .map(slot => ({
-            start: normalizeTime(slot.start),
-            end: normalizeTime(slot.end),
 
-            capacity:
-              slot.capacity === null ||
-              slot.capacity === "" ||
-              typeof slot.capacity === "undefined"
-                ? null
-                : Number(slot.capacity)
-          }))
-          .filter(slot => slot.start && slot.end)
-          .sort(
-            (a, b) =>
-              timeToMinutes(a.start) -
-              timeToMinutes(b.start)
-          )
-      : [];
+  const slots = Array.isArray(ticketSettings.slots)
+    ? ticketSettings.slots
+        .map(slot => ({
+          start: normalizeTime(slot.start),
+          end: normalizeTime(slot.end),
+
+          capacity:
+            slot.capacity === null ||
+            slot.capacity === "" ||
+            typeof slot.capacity === "undefined"
+              ? null
+              : Number(slot.capacity)
+        }))
+        .filter(slot => slot.start && slot.end)
+        .sort(
+          (a, b) =>
+            timeToMinutes(a.start) -
+            timeToMinutes(b.start)
+        )
+    : [];
+
 
   // 時間帯設定がない場合
+  // 全体の開始～終了だけで発行
   if (slots.length === 0) {
 
     return {
@@ -363,6 +408,8 @@ function getTicketAvailability() {
     };
   }
 
+
+  // 現在の時間帯を確認
   for (const slot of slots) {
 
     const slotStart =
@@ -370,6 +417,7 @@ function getTicketAvailability() {
 
     const slotEnd =
       timeToMinutes(slot.end);
+
 
     if (
       slotStart === null ||
@@ -379,21 +427,25 @@ function getTicketAvailability() {
       continue;
     }
 
+
     const actualStart =
       Math.max(slotStart, start);
 
     const actualEnd =
       Math.min(slotEnd, end);
 
+
     if (actualStart >= actualEnd) {
       continue;
     }
+
 
     if (
       nowMinutes >= actualStart &&
       nowMinutes < actualEnd
     ) {
 
+      // 発行可能
       if (
         slot.capacity === null ||
         getIssuedCountForSlot(
@@ -412,11 +464,14 @@ function getTicketAvailability() {
         };
       }
 
+
+      // この時間帯の上限到達
       const nextTime =
         getNextAvailableTime(
           nowMinutes + 1,
           dateKey
         );
+
 
       return {
         available: false,
@@ -429,11 +484,14 @@ function getTicketAvailability() {
     }
   }
 
+
+  // 区切りの間
   const nextTime =
     getNextAvailableTime(
       nowMinutes,
       dateKey
     );
+
 
   if (nextTime) {
 
@@ -446,6 +504,7 @@ function getTicketAvailability() {
     };
   }
 
+
   return {
     available: false,
     reason: "現在は発行できません。",
@@ -457,7 +516,7 @@ function getTicketAvailability() {
 
 
 // =========================================
-// 発券設定チェック
+// 発行時間設定のバリデーション
 // =========================================
 
 function validateTicketSettings(input) {
@@ -468,11 +527,13 @@ function validateTicketSettings(input) {
   const end =
     normalizeTime(input?.end);
 
+
   const startMinutes =
     timeToMinutes(start);
 
   const endMinutes =
     timeToMinutes(end);
+
 
   if (
     start === null ||
@@ -487,15 +548,19 @@ function validateTicketSettings(input) {
     };
   }
 
+
   const rawSlots =
     Array.isArray(input?.slots)
       ? input.slots
       : [];
 
+
   const slots = [];
+
 
   for (const raw of rawSlots) {
 
+    // 完全に空の行は無視
     if (
       !raw ||
       (
@@ -511,17 +576,20 @@ function validateTicketSettings(input) {
       continue;
     }
 
+
     const slotStart =
       normalizeTime(raw.start);
 
     const slotEnd =
       normalizeTime(raw.end);
 
+
     const s =
       timeToMinutes(slotStart);
 
     const e =
       timeToMinutes(slotEnd);
+
 
     if (
       slotStart === null ||
@@ -536,6 +604,8 @@ function validateTicketSettings(input) {
       };
     }
 
+
+    // 全体の開始～終了の範囲内か確認
     if (
       s < startMinutes ||
       e > endMinutes
@@ -548,8 +618,11 @@ function validateTicketSettings(input) {
       };
     }
 
+
     let capacity = null;
 
+
+    // 上限が入力されている場合
     if (
       !(
         raw.capacity === "" ||
@@ -559,6 +632,7 @@ function validateTicketSettings(input) {
     ) {
 
       capacity = Number(raw.capacity);
+
 
       if (
         !Number.isInteger(capacity) ||
@@ -573,6 +647,7 @@ function validateTicketSettings(input) {
       }
     }
 
+
     slots.push({
       start: slotStart,
       end: slotEnd,
@@ -580,17 +655,17 @@ function validateTicketSettings(input) {
     });
   }
 
+
+  // 時間順に並べる
   slots.sort(
     (a, b) =>
       timeToMinutes(a.start) -
       timeToMinutes(b.start)
   );
 
-  for (
-    let i = 1;
-    i < slots.length;
-    i++
-  ) {
+
+  // 時間帯の重複チェック
+  for (let i = 1; i < slots.length; i++) {
 
     if (
       timeToMinutes(slots[i].start) <
@@ -605,8 +680,10 @@ function validateTicketSettings(input) {
     }
   }
 
+
   return {
     ok: true,
+
     settings: {
       start,
       end,
@@ -624,14 +701,14 @@ app.post("/webhook", async (req, res) => {
 
   const events = req.body.events;
 
+
   if (
     !events ||
     events.length === 0
   ) {
-    return res
-      .status(200)
-      .send("No events");
+    return res.status(200).send("No events");
   }
+
 
   const event = events[0];
 
@@ -641,20 +718,24 @@ app.post("/webhook", async (req, res) => {
   const userId =
     event.source.userId;
 
+
   const lastTicket =
     ticketLog
       .slice()
       .reverse()
       .find(t => !t.userId);
 
+
   if (lastTicket) {
     lastTicket.userId = userId;
   }
+
 
   try {
 
     await axios.post(
       LINE_REPLY_URL,
+
       {
         replyToken,
 
@@ -663,10 +744,12 @@ app.post("/webhook", async (req, res) => {
             type: "text",
 
             text:
-              `整理券はこちらから発行できます：\nhttps://.../ticket.html`
+              `整理券はこちらから発行できます：\n` +
+              `https://.../ticket.html`
           }
         ]
       },
+
       {
         headers: {
           Authorization:
@@ -675,9 +758,8 @@ app.post("/webhook", async (req, res) => {
       }
     );
 
-    res
-      .status(200)
-      .send("OK");
+
+    res.status(200).send("OK");
 
   } catch (err) {
 
@@ -687,9 +769,7 @@ app.post("/webhook", async (req, res) => {
       err.message
     );
 
-    res
-      .status(500)
-      .send("Error");
+    res.status(500).send("Error");
   }
 });
 
@@ -700,18 +780,20 @@ app.post("/webhook", async (req, res) => {
 
 app.post("/api/ticket", (req, res) => {
 
+  // 管理画面から手動で発行停止中
   if (isTicketingClosed) {
 
-    return res
-      .status(403)
-      .json({
-        message:
-          "本日の新規整理券の発行は終了しました。"
-      });
+    return res.status(403).json({
+      message:
+        "本日の新規整理券の発行は終了しました。"
+    });
   }
 
+
+  // 時間・枚数上限チェック
   const availability =
     getTicketAvailability();
+
 
   if (!availability.available) {
 
@@ -719,25 +801,38 @@ app.post("/api/ticket", (req, res) => {
       availability.reason ||
       "現在は整理券を発行できません。";
 
+
     if (availability.nextTime) {
 
       message +=
         ` 次の発券は${availability.nextTime}からです。`;
     }
 
-    return res
-      .status(429)
-      .json({
-        message,
-        reason: availability.reason,
-        nextTime: availability.nextTime,
-        start: availability.start,
-        end: availability.end
-      });
+
+    return res.status(429).json({
+
+      message,
+
+      reason:
+        availability.reason,
+
+      nextTime:
+        availability.nextTime,
+
+      start:
+        availability.start,
+
+      end:
+        availability.end
+    });
   }
 
-  const { userId } = req.body;
 
+  const { userId } =
+    req.body;
+
+
+  // 再発行許可がある場合
   const unlockedEntry =
     ticketLog
       .slice()
@@ -748,6 +843,7 @@ app.post("/api/ticket", (req, res) => {
           (t.limitUnlockCount || 0) > 0
       );
 
+
   if (unlockedEntry) {
 
     unlockedEntry.limitUnlockCount--;
@@ -757,21 +853,37 @@ app.post("/api/ticket", (req, res) => {
     );
   }
 
+
+  // 整理券番号発行
   const ticketNumber =
     currentTicket++;
 
+
   ticketLog.push({
-    number: ticketNumber,
-    timestamp: Date.now(),
-    userId: userId || null,
-    completed: false,
-    limitUnlockCount: 0,
+
+    number:
+      ticketNumber,
+
+    timestamp:
+      Date.now(),
+
+    userId:
+      userId || null,
+
+    completed:
+      false,
+
+    limitUnlockCount:
+      0,
+
     actualMinutes:
       DEFAULT_TICKET_MINUTES
   });
 
+
   res.json({
-    number: ticketNumber
+    number:
+      ticketNumber
   });
 });
 
@@ -783,13 +895,14 @@ app.post("/api/ticket", (req, res) => {
 app.get("/api/number", (req, res) => {
 
   res.json({
-    number: currentNumber
+    number:
+      currentNumber
   });
 });
 
 
 // =========================================
-// 呼び出し番号変更
+// 呼び出し番号を進める
 // =========================================
 
 app.post("/api/call", (req, res) => {
@@ -799,11 +912,13 @@ app.post("/api/call", (req, res) => {
       ? req.body.diff
       : 1;
 
+
   currentNumber =
     Math.max(
       0,
       currentNumber + diff
     );
+
 
   res.json({
     message:
@@ -813,26 +928,30 @@ app.post("/api/call", (req, res) => {
 
 
 // =========================================
-// 呼び出し番号直接設定
+// 呼び出し番号を直接設定
 // =========================================
 
 app.post("/api/set", (req, res) => {
 
-  const { number } = req.body;
+  const { number } =
+    req.body;
+
 
   if (
     typeof number !== "number" ||
     number < 0
   ) {
 
-    return res
-      .status(400)
-      .json({
-        message: "無効な番号です。"
-      });
+    return res.status(400).json({
+      message:
+        "無効な番号です。"
+    });
   }
 
-  currentNumber = number;
+
+  currentNumber =
+    number;
+
 
   res.json({
     message:
@@ -842,7 +961,7 @@ app.post("/api/set", (req, res) => {
 
 
 // =========================================
-// 最後の整理券番号
+// 最後に発行された整理券
 // =========================================
 
 app.get("/api/ticket/last", (req, res) => {
@@ -860,32 +979,40 @@ app.get("/api/ticket/last", (req, res) => {
 
 app.get("/api/ticket/log", (req, res) => {
 
-  res.json(ticketLog);
+  res.json(
+    ticketLog
+  );
 });
 
 
 // =========================================
-// 時間データ取得
+// 所要時間データ取得
 // =========================================
 
 app.get("/api/time-data", (req, res) => {
 
   const timeData =
     ticketLog.map(t => ({
-      number: t.number,
+
+      number:
+        t.number,
 
       actualMinutes:
         typeof t.actualMinutes === "number"
           ? t.actualMinutes
           : DEFAULT_TICKET_MINUTES
+
     }));
 
-  res.json(timeData);
+
+  res.json(
+    timeData
+  );
 });
 
 
 // =========================================
-// 時間データ更新
+// 所要時間データ更新
 // =========================================
 
 app.post("/api/time-data", (req, res) => {
@@ -895,36 +1022,37 @@ app.post("/api/time-data", (req, res) => {
     actualMinutes
   } = req.body;
 
+
   const entry =
     ticketLog.find(
       t => t.number === number
     );
 
+
   if (!entry) {
 
-    return res
-      .status(404)
-      .json({
-        message:
-          "整理券が見つかりません。"
-      });
+    return res.status(404).json({
+      message:
+        "整理券が見つかりません。"
+    });
   }
+
 
   if (
     typeof actualMinutes !== "number" ||
     actualMinutes < 0
   ) {
 
-    return res
-      .status(400)
-      .json({
-        message:
-          "無効な所要時間です。"
-      });
+    return res.status(400).json({
+      message:
+        "無効な所要時間です。"
+    });
   }
+
 
   entry.actualMinutes =
     actualMinutes;
+
 
   res.json({
     message:
@@ -937,418 +1065,486 @@ app.post("/api/time-data", (req, res) => {
 // 現在の整理券の所要時間
 // =========================================
 
-app.get(
-  "/api/current-ticket-time",
-  (req, res) => {
+app.get("/api/current-ticket-time", (req, res) => {
 
-    const current =
-      ticketLog.find(
-        t => t.number === currentNumber
-      );
-
-    res.json({
-      number: currentNumber,
-
-      actualMinutes:
-        typeof current?.actualMinutes === "number"
-          ? current.actualMinutes
-          : DEFAULT_TICKET_MINUTES
-    });
-  }
-);
+  const current =
+    ticketLog.find(
+      t => t.number === currentNumber
+    );
 
 
-// =========================================
-// 発券設定取得
-// =========================================
+  res.json({
 
-app.get(
-  "/api/ticket-settings",
-  (req, res) => {
+    number:
+      currentNumber,
 
-    const availability =
-      getTicketAvailability();
+    actualMinutes:
+      typeof current?.actualMinutes === "number"
+        ? current.actualMinutes
+        : DEFAULT_TICKET_MINUTES
 
-    res.json({
-      ...ticketSettings,
-
-      defaultTicketMinutes:
-        DEFAULT_TICKET_MINUTES,
-
-      availability
-    });
-  }
-);
+  });
+});
 
 
 // =========================================
-// 発券設定保存
+// 整理券発行設定取得
 // =========================================
 
-app.post(
-  "/api/ticket-settings",
-  (req, res) => {
+app.get("/api/ticket-settings", (req, res) => {
 
-    const result =
-      validateTicketSettings(
-        req.body || {}
-      );
+  const availability =
+    getTicketAvailability();
 
-    if (!result.ok) {
 
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: result.message
-        });
-    }
+  res.json({
 
-    ticketSettings =
-      result.settings;
+    ...ticketSettings,
 
-    res.json({
-      success: true,
+    defaultTicketMinutes:
+      DEFAULT_TICKET_MINUTES,
+
+    availability
+  });
+});
+
+
+// =========================================
+// 整理券発行設定保存
+// =========================================
+
+app.post("/api/ticket-settings", (req, res) => {
+
+  const result =
+    validateTicketSettings(
+      req.body || {}
+    );
+
+
+  if (!result.ok) {
+
+    return res.status(400).json({
+
+      success:
+        false,
 
       message:
-        "整理券の発行時間・上限を保存しました。",
+        result.message
 
-      ...ticketSettings,
-
-      defaultTicketMinutes:
-        DEFAULT_TICKET_MINUTES
     });
   }
-);
+
+
+  ticketSettings =
+    result.settings;
+
+
+  res.json({
+
+    success:
+      true,
+
+    message:
+      "整理券の発行時間・上限を保存しました。",
+
+    ...ticketSettings,
+
+    defaultTicketMinutes:
+      DEFAULT_TICKET_MINUTES
+  });
+});
 
 
 // =========================================
-// LINE手動通知
+// LINE通知
 // =========================================
 
-app.post(
-  "/api/notify",
-  async (req, res) => {
+app.post("/api/notify", async (req, res) => {
 
-    const {
-      number,
-      message
-    } = req.body;
+  const {
+    number,
+    message
+  } = req.body;
 
-    if (
-      typeof number !== "number" ||
-      number <= 0
-    ) {
 
-      return res
-        .status(400)
-        .json({
-          message:
-            "無効な整理券番号です。"
-        });
-    }
+  if (
+    typeof number !== "number" ||
+    number <= 0
+  ) {
 
-    const entry =
-      ticketLog.find(
-        t => t.number === number
-      );
-
-    if (!entry?.userId) {
-
-      return res
-        .status(404)
-        .json({
-          message:
-            `整理券番号 ${number} のユーザー情報が見つかりません。`
-        });
-    }
-
-    try {
-
-      await axios.post(
-        LINE_PUSH_URL,
-
-        {
-          to: entry.userId,
-
-          messages: [
-            {
-              type: "text",
-
-              text:
-                message ||
-                `【手動通知】整理券番号 ${number} の方、まもなく順番です。`
-            }
-          ]
-        },
-
-        {
-          headers: {
-            Authorization:
-              `Bearer ${LINE_ACCESS_TOKEN}`
-          }
-        }
-      );
-
-      res.json({
-        message:
-          `番号 ${number} に通知を送信しました。`
-      });
-
-    } catch (err) {
-
-      console.error(err);
-
-      res
-        .status(500)
-        .json({
-          message:
-            "通知送信に失敗しました。"
-        });
-    }
+    return res.status(400).json({
+      message:
+        "無効な整理券番号です。"
+    });
   }
-);
+
+
+  const entry =
+    ticketLog.find(
+      t => t.number === number
+    );
+
+
+  if (!entry?.userId) {
+
+    return res.status(404).json({
+      message:
+        `整理券番号 ${number} のユーザー情報が見つかりません。`
+    });
+  }
+
+
+  try {
+
+    await axios.post(
+
+      LINE_PUSH_URL,
+
+      {
+
+        to:
+          entry.userId,
+
+        messages: [
+
+          {
+            type:
+              "text",
+
+            text:
+              message ||
+              `【手動通知】整理券番号 ${number} の方、まもなく順番です。`
+          }
+
+        ]
+      },
+
+      {
+
+        headers: {
+
+          Authorization:
+            `Bearer ${LINE_ACCESS_TOKEN}`
+
+        }
+
+      }
+    );
+
+
+    res.json({
+
+      message:
+        `番号 ${number} に通知を送信しました。`
+
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+
+      message:
+        "通知送信に失敗しました。"
+
+    });
+  }
+});
 
 
 // =========================================
 // 整理券完了
 // =========================================
 
-app.post(
-  "/api/complete",
-  (req, res) => {
+app.post("/api/complete", (req, res) => {
 
-    const {
-      userId,
-      ticketNumber
-    } = req.body;
-
-    const entry =
-      ticketLog.find(
-        t =>
-          t.number === ticketNumber &&
-          t.userId === userId
-      );
-
-    if (!entry) {
-
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "該当整理券が見つかりません。"
-        });
-    }
-
-    entry.completed = true;
-
-    res.json({
-      success: true
-    });
-  }
-);
+  const {
+    userId,
+    ticketNumber
+  } = req.body;
 
 
-// =========================================
-// 制限解除
-// =========================================
+  const entry =
+    ticketLog.find(
+      t =>
+        t.number === ticketNumber &&
+        t.userId === userId
+    );
 
-app.post(
-  "/api/unlock-limit",
-  (req, res) => {
 
-    const { number } =
-      req.body;
+  if (!entry) {
 
-    const entry =
-      ticketLog.find(
-        t => t.number === number
-      );
+    return res.status(404).json({
 
-    if (!entry) {
-
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "整理券が見つかりません。"
-        });
-    }
-
-    entry.limitUnlockCount = 1;
-
-    res.json({
-      success: true,
+      success:
+        false,
 
       message:
-        `番号 ${number} を1回再発行可能にしました`
+        "該当整理券が見つかりません。"
+
     });
   }
-);
+
+
+  entry.completed =
+    true;
+
+
+  res.json({
+    success:
+      true
+  });
+});
 
 
 // =========================================
-// 制限解除チェック
+// 再発行許可
 // =========================================
 
-app.post(
-  "/api/check-unlock",
-  (req, res) => {
+app.post("/api/unlock-limit", (req, res) => {
 
-    const { userId } =
-      req.body;
+  const {
+    number
+  } = req.body;
 
-    const entry =
-      ticketLog
-        .slice()
-        .reverse()
-        .find(
-          t => t.userId === userId
-        );
 
-    res.json({
-      unlocked:
-        (entry?.limitUnlockCount || 0) > 0
+  const entry =
+    ticketLog.find(
+      t => t.number === number
+    );
+
+
+  if (!entry) {
+
+    return res.status(404).json({
+
+      success:
+        false,
+
+      message:
+        "整理券が見つかりません。"
+
     });
   }
-);
+
+
+  entry.limitUnlockCount =
+    1;
+
+
+  res.json({
+
+    success:
+      true,
+
+    message:
+      `番号 ${number} を1回再発行可能にしました`
+
+  });
+});
 
 
 // =========================================
-// 番号による制限解除チェック
+// 再発行可能か確認
 // =========================================
 
-app.post(
-  "/api/check-unlock-by-number",
-  (req, res) => {
+app.post("/api/check-unlock", (req, res) => {
 
-    const { number } =
-      req.body;
+  const {
+    userId
+  } = req.body;
 
-    const entry =
-      ticketLog.find(
-        t => t.number === number
+
+  const entry =
+    ticketLog
+      .slice()
+      .reverse()
+      .find(
+        t => t.userId === userId
       );
 
-    res.json({
-      unlocked:
-        (entry?.limitUnlockCount || 0) > 0
-    });
+
+  res.json({
+
+    unlocked:
+      (entry?.limitUnlockCount || 0) > 0
+
+  });
+});
+
+
+// =========================================
+// 整理券番号から再発行可能か確認
+// =========================================
+
+app.post("/api/check-unlock-by-number", (req, res) => {
+
+  const {
+    number
+  } = req.body;
+
+
+  const entry =
+    ticketLog.find(
+      t => t.number === number
+    );
+
+
+  res.json({
+
+    unlocked:
+      (entry?.limitUnlockCount || 0) > 0
+
+  });
+});
+
+
+// =========================================
+// すべてリセット
+// =========================================
+
+app.post("/api/reset", (req, res) => {
+
+  // 呼び出し番号を初期化
+  currentNumber = 0;
+
+
+  // 整理券番号を1番からに戻す
+  currentTicket = 1;
+
+
+  // 発行ログを削除
+  ticketLog = [];
+
+
+  // 手動の発行停止状態を解除
+  isTicketingClosed = false;
+
+
+  // =====================================
+  // 整理券の発行時間・時間帯ごとの
+  // 発行枚数上限も初期状態へ戻す
+  // =====================================
+
+  ticketSettings = {
+
+    start:
+      "09:30",
+
+    end:
+      "13:00",
+
+    slots:
+      []
+  };
+
+
+  // リセット通知用フラグ
+  resetFlag =
+    true;
+
+
+  res.json({
+
+    message:
+      "呼び出し番号と整理券番号、発行ログ、発行時間・上限設定をリセットしました。",
+
+    ticketSettings
+
+  });
+});
+
+
+// =========================================
+// リセット状態確認
+// =========================================
+
+app.get("/api/reset-status", (req, res) => {
+
+  res.json({
+
+    reset:
+      resetFlag
+
+  });
+
+
+  if (resetFlag) {
+    resetFlag =
+      false;
   }
-);
-
-
-// =========================================
-// 全リセット
-// =========================================
-
-app.post(
-  "/api/reset",
-  (req, res) => {
-
-    currentNumber = 0;
-
-    currentTicket = 1;
-
-    ticketLog = [];
-
-    isTicketingClosed = false;
-
-    resetFlag = true;
-
-    res.json({
-      message:
-        "呼び出し番号と整理券番号、発行ログをリセットしました。"
-    });
-  }
-);
-
-
-// =========================================
-// リセット状態
-// =========================================
-
-app.get(
-  "/api/reset-status",
-  (req, res) => {
-
-    res.json({
-      reset: resetFlag
-    });
-
-    if (resetFlag) {
-      resetFlag = false;
-    }
-  }
-);
+});
 
 
 // =========================================
 // 整理券発行状態
 // =========================================
 
-app.get(
-  "/api/ticketing-status",
-  (req, res) => {
+app.get("/api/ticketing-status", (req, res) => {
 
-    const availability =
-      getTicketAvailability();
+  const availability =
+    getTicketAvailability();
 
-    res.json({
-      closed:
-        isTicketingClosed,
 
-      ...availability
-    });
-  }
-);
+  res.json({
+
+    closed:
+      isTicketingClosed,
+
+    ...availability
+
+  });
+});
 
 
 // =========================================
 // 整理券発行停止
 // =========================================
 
-app.post(
-  "/api/close-ticketing",
-  (req, res) => {
+app.post("/api/close-ticketing", (req, res) => {
 
-    isTicketingClosed = true;
+  isTicketingClosed =
+    true;
 
-    res.json({
-      message:
-        "本日の新規整理券発行を終了しました。"
-    });
-  }
-);
+
+  res.json({
+
+    message:
+      "本日の新規整理券発行を終了しました。"
+
+  });
+});
 
 
 // =========================================
 // 整理券発行再開
 // =========================================
 
-app.post(
-  "/api/open-ticketing",
-  (req, res) => {
+app.post("/api/open-ticketing", (req, res) => {
 
-    isTicketingClosed = false;
+  isTicketingClosed =
+    false;
 
-    res.json({
-      message:
-        "本日の新規整理券発行を再開しました。"
-    });
-  }
-);
+
+  res.json({
+
+    message:
+      "本日の新規整理券発行を再開しました。"
+
+  });
+});
 
 
 // =========================================
-// トップページ
+// TOP
 // =========================================
 
 app.get("/", (req, res) => {
 
-  res.redirect("/ticket.html");
+  res.redirect(
+    "/ticket.html"
+  );
 });
 
 
@@ -1356,38 +1552,38 @@ app.get("/", (req, res) => {
 // 準備中モード取得
 // =========================================
 
-app.get(
-  "/api/preparation-mode",
-  (req, res) => {
+app.get("/api/preparation-mode", (req, res) => {
 
-    res.json({
-      preparing
-    });
-  }
-);
+  res.json({
+
+    preparing
+
+  });
+});
 
 
 // =========================================
 // 準備中モード変更
 // =========================================
 
-app.post(
-  "/api/preparation-mode",
-  (req, res) => {
+app.post("/api/preparation-mode", (req, res) => {
 
-    preparing =
-      req.body.preparing;
+  preparing =
+    req.body.preparing;
 
-    res.json({
-      success: true,
 
-      message:
-        preparing
-          ? "準備中モードにしました"
-          : "受付を開始しました"
-    });
-  }
-);
+  res.json({
+
+    success:
+      true,
+
+    message:
+      preparing
+        ? "準備中モードにしました"
+        : "受付を開始しました"
+
+  });
+});
 
 
 // =========================================
@@ -1396,6 +1592,7 @@ app.post(
 
 const port =
   process.env.PORT || 3000;
+
 
 app.listen(
   port,
