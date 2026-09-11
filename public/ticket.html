@@ -98,7 +98,7 @@
       font-weight: bold;
     }
 
-    #issue-button:not(.disabled) {
+    #issue-button {
       animation: issue-button-blink .9s infinite alternate;
     }
 
@@ -417,28 +417,6 @@
   </div>
 
 
-  <div id="first-time-modal" class="modal">
-
-    <div class="modal-content">
-
-      <h2>初めて整理券を発行する方へ</h2>
-
-      <p>
-        ・一組につき一枚整理券を発行してください。<br/>
-        (一組は3人までです)<br/>
-        ・呼び出し中の整理券番号をこまめにチェックしてください。<br/>
-        ・操作が分からない場合は受付へお尋ねください。
-      </p>
-
-      <button onclick="closeFirstTimeModal()">
-        わかりました！
-      </button>
-
-    </div>
-
-  </div>
-
-
   <div id="closed-modal" class="modal">
 
     <div class="modal-content">
@@ -668,6 +646,9 @@ let preparationCheckInterval = null;
 let appInitialized = false;
 let liffInitializing = false;
 
+// 初回注意事項モーダル用
+let firstTimeInfoCountdownInterval = null;
+
 
 // =========================================
 // 起動
@@ -780,19 +761,14 @@ async function postInit() {
 
   if (
     localStorage.getItem(
-      "firstTimeDone"
-    ) !== "true"
-  ) {
-    showFirstTimeModal();
-  }
-
-
-  if (
-    localStorage.getItem(
       "dont-show-info"
     ) !== "true"
   ) {
-    showInfoModal();
+    showInfoModal(
+      localStorage.getItem(
+        "firstTimeDone"
+      ) !== "true"
+    );
   }
 
 
@@ -856,7 +832,7 @@ async function postInit() {
 // 注意事項モーダル
 // =========================================
 
-function showInfoModal() {
+function showInfoModal(isFirstTime = false) {
 
   dontShowInfoCheckbox.checked =
     (
@@ -868,6 +844,74 @@ function showInfoModal() {
 
   infoModal.style.display =
     "flex";
+
+  const infoButton =
+    infoModal.querySelector(
+      ".modal-content button"
+    );
+
+  if (
+    !infoButton
+  ) {
+    return;
+  }
+
+  clearInterval(
+    firstTimeInfoCountdownInterval
+  );
+
+  if (
+    isFirstTime
+  ) {
+
+    let remaining = 10;
+
+    infoButton.disabled = true;
+    infoButton.textContent =
+      `残り${remaining}秒`;
+
+    firstTimeInfoCountdownInterval =
+      setInterval(
+        () => {
+
+          remaining--;
+
+          if (
+            remaining > 0
+          ) {
+
+            infoButton.textContent =
+              `残り${remaining}秒`;
+
+            return;
+          }
+
+          clearInterval(
+            firstTimeInfoCountdownInterval
+          );
+
+          firstTimeInfoCountdownInterval =
+            null;
+
+          infoButton.disabled =
+            false;
+
+          infoButton.textContent =
+            "わかりました！";
+
+        },
+        1000
+      );
+
+  } else {
+
+    infoButton.disabled =
+      false;
+
+    infoButton.textContent =
+      "わかりました！";
+
+  }
 
 }
 
@@ -891,33 +935,27 @@ function closeInfoModal() {
 
   }
 
+  if (
+    localStorage.getItem(
+      "firstTimeDone"
+    ) !== "true"
+  ) {
 
-  infoModal.style.display =
-    "none";
+    localStorage.setItem(
+      "firstTimeDone",
+      "true"
+    );
 
-}
+  }
 
-
-// =========================================
-// 初回モーダル
-// =========================================
-
-function showFirstTimeModal() {
-
-  firstTimeModal.style.display =
-    "flex";
-
-}
-
-
-function closeFirstTimeModal() {
-
-  localStorage.setItem(
-    "firstTimeDone",
-    "true"
+  clearInterval(
+    firstTimeInfoCountdownInterval
   );
 
-  firstTimeModal.style.display =
+  firstTimeInfoCountdownInterval =
+    null;
+
+  infoModal.style.display =
     "none";
 
 }
