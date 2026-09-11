@@ -89,6 +89,35 @@
       background-color: darkred;
     }
 
+    /* 整理券発行ボタン：現在呼び出し中の番号の下で目立たせる */
+    #issue-button {
+      font-size: 1.15em;
+      padding: .7em 1.45em;
+      margin: .25em auto .35em;
+      display: block;
+      font-weight: bold;
+    }
+
+    #issue-button:not(.disabled) {
+      animation: issue-button-blink .9s infinite alternate;
+    }
+
+    @keyframes issue-button-blink {
+      from {
+        opacity: 1;
+        transform: scale(1);
+      }
+      to {
+        opacity: .45;
+        transform: scale(1.025);
+      }
+    }
+
+    #issue-button.issued {
+      display: none;
+      animation: none;
+    }
+
     .modal {
       display: none;
       position: fixed;
@@ -140,7 +169,8 @@
       border-radius: 5px;
       cursor: pointer;
       z-index: 2000;
-      font-size: .72em;
+      font-size: .78em;
+      padding: .42em .72em;
     }
 
     #show-info-button:hover {
@@ -182,6 +212,16 @@
 
     #estimate-time {
       text-align: center;
+      color: #ffcf33;
+      font-weight: bold;
+    }
+
+    .estimate-label {
+      color: #ff8a8a;
+    }
+
+    .estimate-clock {
+      color: #66e6ff;
     }
 
     .estimate-clock {
@@ -232,7 +272,9 @@
       }
 
       #issue-button {
-        margin: .15em;
+        margin: .18em auto .28em;
+        font-size: 1.08em;
+        padding: .66em 1.3em;
       }
 
       .ticket-number {
@@ -252,8 +294,8 @@
       }
 
       #show-info-button {
-        font-size: .65em;
-        padding: .3em .5em;
+        font-size: .7em;
+        padding: .34em .56em;
       }
     }
 
@@ -422,15 +464,6 @@
   </h1>
 
 
-  <button
-    id="issue-button"
-    onclick="getTicket()"
-    disabled
-  >
-    整理券を発行する
-  </button>
-
-
   <div id="schedule-status"></div>
 
 
@@ -453,6 +486,15 @@
     現在呼び出し中：
     <span id="current-number">--</span>
   </div>
+
+
+  <button
+    id="issue-button"
+    onclick="getTicket()"
+    disabled
+  >
+    整理券を発行する
+  </button>
 
 
   <div
@@ -1141,6 +1183,10 @@ async function fetchTicketingStatus() {
           "disabled"
         );
 
+        issueButton.classList.remove(
+          "issued"
+        );
+
       } else {
 
         const base =
@@ -1269,6 +1315,10 @@ function disableButtonForRemainingTime() {
       "disabled"
     );
 
+    issueButton.classList.remove(
+      "issued"
+    );
+
     countdownEl.textContent =
       "";
 
@@ -1338,6 +1388,10 @@ function disableButtonForRemainingTime() {
       "disabled"
     );
 
+    issueButton.classList.remove(
+      "issued"
+    );
+
     countdownEl.textContent =
       "";
 
@@ -1388,8 +1442,8 @@ function startCountdown(ms) {
       );
 
 
-    countdownEl.textContent =
-      `あと ${m}分 ${s}秒 後に再発行できます`;
+    // 再発行までの残り時間表示は行わない
+    countdownEl.textContent = "";
 
 
     ms -= 1000;
@@ -1531,7 +1585,7 @@ async function updateEstimateTime() {
     document.getElementById(
       "estimate-time"
     ).innerHTML =
-      `入場目安<br><span class="estimate-clock">${h}:${m} 頃</span>`;
+      `<span class="estimate-label">入場目安</span><br><span class="estimate-clock">${h}:${m} 頃</span>`;
 
 
   } catch (e) {
@@ -1637,6 +1691,10 @@ async function getTicket() {
 
     ticketNumEl.textContent =
       `${ticketNumber} 番`;
+
+
+    // 発行後は発行ボタンを非表示にする
+    issueButton.classList.add("issued");
 
 
     localStorage.setItem(
