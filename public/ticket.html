@@ -867,6 +867,8 @@ function showInfoModal(isFirstTime = false) {
     let remaining = 10;
 
     infoButton.disabled = true;
+    infoButton.style.backgroundColor = "darkred";
+    infoButton.style.color = "black";
     infoButton.textContent =
       `残り${remaining}秒`;
 
@@ -896,6 +898,8 @@ function showInfoModal(isFirstTime = false) {
           infoButton.disabled =
             false;
 
+          infoButton.style.backgroundColor = "red";
+          infoButton.style.color = "black";
           infoButton.textContent =
             "わかりました！";
 
@@ -908,6 +912,8 @@ function showInfoModal(isFirstTime = false) {
     infoButton.disabled =
       false;
 
+    infoButton.style.backgroundColor = "red";
+    infoButton.style.color = "black";
     infoButton.textContent =
       "わかりました！";
 
