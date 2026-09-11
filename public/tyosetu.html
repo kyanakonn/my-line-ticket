@@ -39,10 +39,19 @@
     <div class="timer-buttons">
       <button onclick="startMeasurement()">開始</button>
       <button onclick="finishMeasurement()">完了</button>
+      <button onclick="refreshLatest()">最新の状態に更新</button>
+      <button onclick="showRecords()">記録を見る</button>
     </div>
   </div>
   <div id="message"></div>
   <div id="next-estimate"></div>
+  <div id="record-panel" style="display:none; margin-top:.8em;">
+    <h2>計測記録</h2>
+    <table id="record-table">
+      <thead><tr><th>整理券番号</th><th>時間（分:秒）</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
   <table id="time-table">
     <thead><tr><th>整理券番号</th><th>所要時間（分）</th><th>手動編集</th></tr></thead>
     <tbody></tbody>
@@ -105,9 +114,78 @@ async function updateTime(number) {
 }
 
 async function getCurrentNumber() {
-  const res = await fetch("/api/number");
+  const res = await fetch("/api/number?ts=" + Date.now(), {
+    cache:"no-store"
+  });
+  if (!res.ok) throw new Error("呼び出し番号の取得に失敗しました");
   const data = await res.json();
   return data.number;
+}
+
+// 最新状態を取得しても、計測中のタイマーはリセットしない。
+async function refreshLatest(showMessage = true) {
+  try {
+    const currentNumber = await getCurrentNumber();
+
+    if (timerInterval && measuringTicket && currentNumber !== measuringTicket) {
+      const oldNumber = measuringTicket;
+      measuringTicket = currentNumber;
+      document.getElementById("current-ticket").textContent =
+        `現在計測中: ${measuringTicket}番`;
+      if (showMessage) {
+        document.getElementById("message").textContent =
+          `呼び出し番号が${oldNumber}番から${measuringTicket}番に変更されました。計測は継続中です。`;
+      }
+    } else if (!timerInterval && currentNumber > 0) {
+      document.getElementById("current-ticket").textContent =
+        `現在計測中: ${currentNumber}番`;
+    }
+
+    await loadTimeData();
+    await loadRecords();
+  } catch (e) {
+    document.getElementById("message").textContent =
+      "最新状態の取得に失敗しました。";
+    console.error(e);
+  }
+}
+
+async function loadRecords() {
+  const res = await fetch("/api/time-records?ts=" + Date.now(), {
+    cache:"no-store"
+  });
+  if (!res.ok) throw new Error("計測記録の取得に失敗しました");
+  const records = await res.json();
+  const tbody = document.querySelector("#record-table tbody");
+  tbody.innerHTML = "";
+
+  records.forEach(record => {
+    const tr = document.createElement("tr");
+    const totalSeconds = Math.max(0, Number(record.durationSeconds) || 0);
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    tr.innerHTML = `
+      <td>${record.number}</td>
+      <td>${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function showRecords() {
+  const panel = document.getElementById("record-panel");
+  if (panel.style.display === "none") {
+    try {
+      await loadRecords();
+      panel.style.display = "block";
+    } catch (e) {
+      document.getElementById("message").textContent =
+        "計測記録の取得に失敗しました。";
+      console.error(e);
+    }
+  } else {
+    panel.style.display = "none";
+  }
 }
 
 function runTimer() {
@@ -137,8 +215,10 @@ async function finishMeasurement() {
 
   clearInterval(timerInterval);
   timerInterval = null;
+
   const finishedTicket = measuringTicket;
-  const elapsedMinutes = Math.max(1, Math.round((Date.now() - timerStartTime) / 60000));
+  const durationSeconds = Math.max(0, Math.floor((Date.now() - timerStartTime) / 1000));
+  const elapsedMinutes = Math.max(1, Math.round(durationSeconds / 60));
 
   try {
     const saveRes = await fetch("/api/time-data", {
@@ -147,13 +227,19 @@ async function finishMeasurement() {
     });
     if (!saveRes.ok) throw new Error("保存失敗");
 
+    const recordRes = await fetch("/api/time-records", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({number:finishedTicket,durationSeconds})
+    });
+    if (!recordRes.ok) throw new Error("計測記録保存失敗");
+
     // 完了したら自動で呼び出し番号を+1し、その番号の計測を開始。
     const callRes = await fetch("/api/call", {
       method:"POST", headers:{"Content-Type":"application/json"},
       body:JSON.stringify({diff:1})
     });
     if (!callRes.ok) throw new Error("番号変更失敗");
-    const callData = await callRes.json();
+
     const nextNumber = await getCurrentNumber();
 
     measuringTicket = nextNumber;
@@ -162,10 +248,10 @@ async function finishMeasurement() {
     document.getElementById("elapsed-time").textContent = "00:00";
     runTimer();
     document.getElementById("message").textContent =
-      `${finishedTicket}番を${elapsedMinutes}分で保存。${nextNumber}番の計測を開始しました。`;
-    loadTimeData();
+      `${finishedTicket}番を${String(Math.floor(durationSeconds / 60)).padStart(2,"0")}:${String(durationSeconds % 60).padStart(2,"0")}で保存。${nextNumber}番の計測を開始しました。`;
+    await loadTimeData();
+    await loadRecords();
   } catch(err) {
-    // 保存・番号変更の途中で失敗した場合でも、再試行できるよう状態を初期化。
     measuringTicket = null;
     timerStartTime = null;
     document.getElementById("current-ticket").textContent = "現在計測中: -";
@@ -176,6 +262,13 @@ async function finishMeasurement() {
 }
 
 loadTimeData();
+loadRecords();
+
+// 管理画面で呼び出し番号が変更された場合も、
+// 計測を止めずに現在計測中の番号だけ更新する。
+setInterval(() => {
+  if (timerInterval) refreshLatest(false);
+}, 2000);
 </script>
 </body>
 </html>
