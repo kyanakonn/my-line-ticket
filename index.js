@@ -603,7 +603,7 @@ function getTicketAvailability() {
         available: false,
 
         reason:
-          "この時間帯の発行上限に達しました。",
+          "この回の発行上限に達しました。",
 
         nextTime,
 
@@ -976,7 +976,7 @@ app.post("/api/ticket", (req, res) => {
 
     return res.status(403).json({
       message:
-        "現在は準備中です。管理者が受付を開始すると発行できます。",
+        "現在は準備中です。9時30分に受付を開始します。",
 
       preparing: true
     });
