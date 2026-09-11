@@ -425,7 +425,6 @@
 
       <p>
         整理券発行が規定の数を超えたため、新規受付を中断しています。<br/>
-        新規整理券の発行は予告なしに再開する可能性があります。
       </p>
 
       <button onclick="closeClosedModal()">
@@ -491,7 +490,7 @@
     id="complete-button"
     onclick="confirmComplete()"
   >
-    受付完了
+    受付を完了
   </button>
 
 
@@ -1879,7 +1878,7 @@ function updateWaitingInfo(
     ) {
 
       waitingInfo.textContent =
-        "順番です！準備をしてください！";
+        "順番です。準備をしてください。";
 
       waitingInfo.style.color =
         "lightblue";
@@ -1891,7 +1890,7 @@ function updateWaitingInfo(
     ) {
 
       waitingInfo.textContent =
-        "もうすぐ順番です。受付までお越しください！";
+        "もうすぐ順番です。受付までお越しください。";
 
       waitingInfo.style.color =
         "yellow";
@@ -1944,7 +1943,7 @@ function updateWaitingInfo(
   ) {
 
     waitingInfo.textContent =
-      "順番が近づいています。こまめにチェックしてください！";
+      "順番が近づいています。こまめにチェックしてください。";
 
     waitingInfo.style.color =
       "orange";
