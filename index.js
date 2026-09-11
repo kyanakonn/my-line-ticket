@@ -10,6 +10,8 @@ app.use(express.static("public"));
 let currentTicket = 1;
 let currentNumber = 0;
 let ticketLog = [];
+// 所要時間の計測記録（計測完了順）
+let measurementRecords = [];
 let isTicketingClosed = false;
 let resetFlag = false;
 let preparing = true;
@@ -1276,6 +1278,56 @@ app.post("/api/time-data", (req, res) => {
 
 
 // =========================================
+// 所要時間の計測記録取得
+// =========================================
+
+app.get("/api/time-records", (req, res) => {
+
+  res.json(
+    measurementRecords
+  );
+
+});
+
+
+// =========================================
+// 所要時間の計測記録保存
+// =========================================
+
+app.post("/api/time-records", (req, res) => {
+
+  const {
+    number,
+    durationSeconds
+  } = req.body;
+
+  if (
+    typeof number !== "number" ||
+    number <= 0 ||
+    typeof durationSeconds !== "number" ||
+    durationSeconds < 0
+  ) {
+    return res.status(400).json({
+      message:
+        "無効な計測記録です。"
+    });
+  }
+
+  measurementRecords.push({
+    number,
+    durationSeconds,
+    timestamp: Date.now()
+  });
+
+  res.json({
+    message:
+      "計測記録を保存しました。"
+  });
+
+});
+
+
+// =========================================
 // 現在の整理券の所要時間
 // =========================================
 
@@ -1637,6 +1689,9 @@ app.post("/api/reset", (req, res) => {
 
   // 発行ログを削除
   ticketLog = [];
+
+  // 所要時間の計測記録も削除
+  measurementRecords = [];
 
 
   // 手動の発行停止状態を解除
