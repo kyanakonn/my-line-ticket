@@ -20,7 +20,6 @@
     table { width:90%; margin:1em auto; border-collapse:collapse; }
     th,td { border:1px solid #ccc; padding:.35em; }
     th { background:#f0f0f0; }
-    #auth-screen { margin-top:4em; }
     #reset-button {
       background:#d9534f;
       color:white;
@@ -97,15 +96,7 @@
 
 <body>
 
-  <div id="auth-screen">
-    <h2>管理者ページにアクセスするにはパスワードを入力してください</h2>
-    <input type="password" id="password-input" placeholder="パスワード" />
-    <button onclick="checkPassword()">送信</button>
-    <p id="auth-message" style="color:red;"></p>
-  </div>
-
-
-  <div id="admin-screen" style="display:none;">
+  <div id="admin-screen">
 
     <h1>管理者用：呼び出し操作</h1>
 
@@ -243,6 +234,12 @@
     </table>
 
 
+    <div class="number-display" style="margin-top:1em;">
+      現在の受付状態：
+      <span id="preparation-state">取得中...</span>
+    </div>
+
+
     <div style="margin-top:1em;">
 
       <button
@@ -299,48 +296,11 @@
 
 <script>
 
-const correctPassword = "kimu3310";
-
-
-/* =========================================
-   パスワード確認
-========================================= */
-
-function checkPassword() {
-
-  const input =
-    document.getElementById("password-input").value;
-
-  const msg =
-    document.getElementById("auth-message");
-
-  if (input === correctPassword) {
-
-    document.getElementById("auth-screen").style.display = "none";
-
-    document.getElementById("admin-screen").style.display = "block";
-
-    /*
-      ★修正部分
-
-      管理画面を開いた最初にだけ
-      サーバーから発行設定を読み込む。
-
-      これにより、5秒ごとの自動更新で
-      入力中の時間が上書きされなくなる。
-    */
-    loadTicketSettings();
-
-    refreshAll();
-
-    setInterval(refreshAll,5000);
-
-  } else {
-
-    msg.textContent = "パスワードが違います。";
-
-  }
-}
+document.addEventListener("DOMContentLoaded", () => {
+  loadTicketSettings();
+  refreshAll();
+  setInterval(refreshAll, 5000);
+});
 
 
 /* =========================================
@@ -517,7 +477,6 @@ async function saveTicketSettings() {
       )
     ]
       .map(row => ({
-
         start:
           row.querySelector(".slot-start").value,
 
@@ -526,7 +485,6 @@ async function saveTicketSettings() {
 
         capacity:
           row.querySelector(".slot-capacity").value
-
       }))
       .filter(
         s =>
@@ -614,18 +572,23 @@ async function refreshAll() {
       ticketRes,
       logRes,
       statusRes
-    ] =
-      await Promise.all([
+    ] = await Promise.all([
+      fetch("/api/number?ts=" + Date.now(), {
+        cache: "no-store"
+      }),
 
-        fetch("/api/number"),
+      fetch("/api/ticket/last?ts=" + Date.now(), {
+        cache: "no-store"
+      }),
 
-        fetch("/api/ticket/last"),
+      fetch("/api/ticket/log?ts=" + Date.now(), {
+        cache: "no-store"
+      }),
 
-        fetch("/api/ticket/log"),
-
-        fetch("/api/ticketing-status")
-
-      ]);
+      fetch("/api/ticketing-status?ts=" + Date.now(), {
+        cache: "no-store"
+      })
+    ]);
 
 
     if (
@@ -732,6 +695,44 @@ async function refreshAll() {
       });
 
 
+    const preparing =
+      statusData.preparing === true;
+
+    const stateEl =
+      document.getElementById(
+        "preparation-state"
+      );
+
+    const prepareButton =
+      document.getElementById(
+        "prepare-button"
+      );
+
+    const startButton =
+      document.getElementById(
+        "start-button"
+      );
+
+
+    stateEl.textContent =
+      preparing
+        ? "準備中"
+        : "受付中";
+
+    stateEl.style.color =
+      preparing
+        ? "#d58512"
+        : "darkgreen";
+
+
+    // 現在の状態と同じ操作はできないようにする
+    prepareButton.disabled =
+      preparing;
+
+    startButton.disabled =
+      !preparing;
+
+
     document.getElementById(
       "close-ticketing-button"
     ).disabled =
@@ -748,19 +749,6 @@ async function refreshAll() {
       "reset-message"
     ).textContent = "";
 
-
-    /*
-      ★重要
-
-      ここにあった
-
-      loadTicketSettings();
-
-      を削除しています。
-
-      これによって5秒ごとの更新で
-      開始・終了時間が上書きされません。
-    */
 
   } catch(error) {
 
@@ -811,6 +799,7 @@ async function changeNumber(diff) {
 
 
     refreshAll();
+
 
   } catch {
 
@@ -884,6 +873,7 @@ async function setNumber() {
 
 
     refreshAll();
+
 
   } catch {
 
@@ -974,6 +964,7 @@ async function sendNotification() {
     notifyEl.textContent =
       data.message ||
       "通知を送信しました。";
+
 
   } catch(err) {
 
@@ -1108,10 +1099,6 @@ async function resetAll() {
           "リセットに失敗しました。";
 
 
-    /*
-      リセット成功時はサーバー側の
-      09:30～13:00 が画面にも反映される。
-    */
     if (res.ok) {
 
       await loadTicketSettings();
@@ -1259,6 +1246,15 @@ async function openTicketing() {
 async function setPreparationMode() {
 
   if (
+    document.getElementById(
+      "prepare-button"
+    ).disabled
+  ) {
+    return;
+  }
+
+
+  if (
     !confirm(
       "準備中モードにしますか？"
     )
@@ -1281,6 +1277,8 @@ async function setPreparationMode() {
             "Content-Type":"application/json"
           },
 
+          cache:"no-store",
+
           body:
             JSON.stringify({
               preparing:true
@@ -1293,10 +1291,21 @@ async function setPreparationMode() {
       await res.json();
 
 
+    if (!res.ok) {
+      throw new Error(
+        data.message ||
+        "設定に失敗しました"
+      );
+    }
+
+
     alert(
       data.message ||
       "準備中モードにしました"
     );
+
+
+    await refreshAll();
 
 
   } catch(err) {
@@ -1306,6 +1315,8 @@ async function setPreparationMode() {
     alert(
       "設定に失敗しました"
     );
+
+    await refreshAll();
 
   }
 
@@ -1317,6 +1328,15 @@ async function setPreparationMode() {
 ========================================= */
 
 async function startReception() {
+
+  if (
+    document.getElementById(
+      "start-button"
+    ).disabled
+  ) {
+    return;
+  }
+
 
   if (
     !confirm(
@@ -1341,6 +1361,8 @@ async function startReception() {
             "Content-Type":"application/json"
           },
 
+          cache:"no-store",
+
           body:
             JSON.stringify({
               preparing:false
@@ -1353,10 +1375,21 @@ async function startReception() {
       await res.json();
 
 
+    if (!res.ok) {
+      throw new Error(
+        data.message ||
+        "設定に失敗しました"
+      );
+    }
+
+
     alert(
       data.message ||
       "受付を開始しました"
     );
+
+
+    await refreshAll();
 
 
   } catch(err) {
@@ -1366,6 +1399,8 @@ async function startReception() {
     alert(
       "設定に失敗しました"
     );
+
+    await refreshAll();
 
   }
 
